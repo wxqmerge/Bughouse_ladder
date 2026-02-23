@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bughouse Chess Ladder</title>
+    <meta name="version" content="1.1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --light-bg: #f8fafc;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            display: block;
+            overflow-x: auto;
+        }
+
+        .data-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            padding: 8px 4px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 4px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        .data-table td:first-child {
+            background-color: rgba(255, 255, 255, 0.5);
+            font-weight: bold;
+        }
+
+        .data-table th, .data-table td {
+            min-width: 50px;
+        }
+
+        .table-responsive {
+            position: relative;
+            min-height: 500px;
+        }
+
+        .table-responsive table {
+            margin-bottom: 0;
+        }
+
+        .badge-rank {
+            background-color: var(--warning-color);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .status-up {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .status-down {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .btn-export {
+            padding: 4px 12px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-chess-king"></i> Bughouse Chess Ladder
+            </a>
+            <small class="text-white-50 me-3">v1.1.0</small>
+            <div class="d-flex align-items-center">
+                <div class="search-box me-3">
+                    <i class="bi bi-search text-primary"></i>
+                    <input type="text" id="searchInput" placeholder="Search players..." onkeyup="searchPlayers()">
+                </div>
+                    <div>
+                        <input type="file" id="fileUpload" accept=".xls,.xlsx,.txt" style="display: none;" onchange="handleFileUpload(event)">
+                        <button class="btn btn-sm btn-outline-secondary btn-export" onclick="handleFileUploadButton()">
+                            <i class="bi bi-upload"></i> Import Excel
+                        </button>
+                        <button class="btn btn-sm btn-success btn-export" onclick="exportToExcel()">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="data-table" id="ladderTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th style="width: 80px;">Group</th>
+                                <th style="width: 120px;">Last Name</th>
+                                <th style="width: 120px;">First Name</th>
+                                <th style="width: 80px;">Rating</th>
+                                <th style="width: 60px;">Rnk</th>
+                                <th style="width: 80px;">New</th>
+                                <th style="width: 50px;">G</th>
+                                <th style="width: 80px;">Date 1</th>
+                                <th style="width: 80px;">Date 2</th>
+                                <th style="width: 80px;">Date 3</th>
+                                <th style="width: 80px;">Date 4</th>
+                                <th style="width: 80px;">Date 5</th>
+                                <th style="width: 80px;">Date 6</th>
+                                <th style="width: 80px;">Date 7</th>
+                                <th style="width: 80px;">Date 8</th>
+                                <th style="width: 80px;">Date 9</th>
+                                <th style="width: 80px;">Date 10</th>
+                                <th style="width: 80px;">Date 11</th>
+                                <th style="width: 80px;">Date 12</th>
+                                <th style="width: 80px;">Date 13</th>
+                                <th style="width: 80px;">Date 14</th>
+                                <th style="width: 80px;">Date 15</th>
+                                <th style="width: 80px;">Date 16</th>
+                                <th style="width: 80px;">Date 17</th>
+                                <th style="width: 80px;">Date 18</th>
+                                <th style="width: 80px;">Date 19</th>
+                                <th style="width: 80px;">Date 20</th>
+                                <th style="width: 80px;">Date 21</th>
+                                <th style="width: 80px;">Date 22</th>
+                                <th style="width: 80px;">Date 23</th>
+                                <th style="width: 80px;">Date 24</th>
+                                <th style="width: 80px;">Date 25</th>
+                                <th style="width: 80px;">Date 26</th>
+                                <th style="width: 80px;">Date 27</th>
+                                <th style="width: 80px;">Date 28</th>
+                                <th style="width: 80px;">Date 29</th>
+                                <th style="width: 80px;">Date 30</th>
+                                <th style="width: 80px;">Date 31</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ladderTableBody">
+                            <tr>
+                                <td colspan="40" class="text-center py-5">
+                                    <p class="text-muted">No data loaded yet. Please import an Excel file to get started.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script>
+        let players = [];
+        let globalKFactor = 32;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameData();
+        });
+
+         function loadGameData() {
+             const fileInput = document.getElementById('fileUpload');
+             if (fileInput) {
+                 fileInput.removeAttribute('required');
+             }
+             const savedData = localStorage.getItem('bughouse_players');
+             if (savedData) {
+                 try {
+                     players = JSON.parse(savedData);
+                     renderLadder();
+                 } catch (e) {
+                     console.error('Error loading data:', e);
+                 }
+             } else {
+                 loadPlayersTxt();
+             }
+         }
+
+         function loadPlayersTxt() {
+             fetch('players.txt')
+                 .then(response => {
+                     if (!response.ok) {
+                         throw new Error('playern.txt not found');
+                     }
+                     return response.text();
+                 })
+                 .then(text => {
+                     console.log('Loading players.txt...');
+                     const lines = text.split(/\r?\n/);
+                     const jsonData = lines.map(line => {
+                         if (line.trim() === '') return [];
+                         return line.split('\t').map(cell => cell.trim());
+                     }).filter(row => row.length > 0 || row[0]?.trim() !== '');
+
+                     if (jsonData && jsonData.length > 0) {
+                         processExcelData(jsonData);
+                     } else {
+                         console.log('No data found in players.txt');
+                     }
+                 })
+                 .catch(error => {
+                     console.log('No players.txt file found, starting with empty data:', error);
+                 });
+         }
+
+        function checkForExcelFiles() {
+            const fileInput = document.getElementById('fileUpload');
+            if (fileInput) {
+                fileInput.removeAttribute('required');
+            }
+        }
+
+        function saveGameData() {
+            localStorage.setItem('bughouse_players', JSON.stringify(players));
+        }
+
+         function handleFileUploadButton() {
+            document.getElementById('fileUpload').click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            console.log('File selected:', file.name);
+            console.log('File type:', file.type);
+
+            const reader = new FileReader();
+
+            try {
+                if (file.name.toLowerCase().endsWith('.xls') || file.name.toLowerCase().endsWith('.xlsx')) {
+                    reader.onload = function(e) {
+                        try {
+                            const data = e.target.result;
+                            const workbook = XLSX.read(data, {type: 'binary'});
+                            console.log('Workbook loaded:', workbook.SheetNames);
+
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const jsonData = XLSX.utils.sheet_to_json(firstSheet, {
+                                header: 1,
+                                blankrows: false
+                            });
+
+                            console.log('Data rows:', jsonData.length);
+
+                            if (jsonData && jsonData.length > 0) {
+                                processExcelData(jsonData);
+                            } else {
+                                showToast('No valid data found in Excel file', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error parsing Excel file:', error);
+                            showToast('Error parsing Excel file', 'danger');
+                        }
+                    };
+                    reader.readAsBinaryString(file);
+                } else {
+                    reader.onload = function(e) {
+                        try {
+                            const text = e.target.result;
+                            const lines = text.split(/\r?\n/);
+                            const jsonData = lines.map(line => {
+                                if (line.trim() === '') return [];
+                                return line.split('\t').map(cell => cell.trim());
+                            }).filter(row => row.length > 0 || row[0]?.trim() !== '');
+
+                            console.log('Tab-delimited rows:', jsonData.length);
+
+                            if (jsonData && jsonData.length > 0) {
+                                processExcelData(jsonData);
+                            } else {
+                                showToast('No valid data found in file', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error parsing file:', error);
+                            showToast('Error parsing file', 'danger');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            } catch (error) {
+                console.error('Error reading file:', error);
+                showToast('Error reading file', 'danger');
+            }
+
+            // Reset file input
+            event.target.value = '';
+        }
+
+        function processExcelData(jsonData) {
+            // Skip the first header row and process data rows
+            players = [];
+            const startIndex = jsonData[0]?.some(cell => cell && isNaN(parseInt(cell.trim()))) ? 0 : 1;
+
+            for (let i = startIndex; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row || row.length === 0 || (row.length > 0 && !row[0] && !row[1])) {
+                    continue;
+                }
+
+                const player = {
+                    id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    group: row[0] || '',
+                    lastName: row[1] || '',
+                    firstName: row[2] || '',
+                    rating: parseInt(row[3]) || 1000,
+                    ranking: parseInt(row[4]) || i + 1,
+                    newRating: parseInt(row[5]) || parseInt(row[3]) || 1000,
+                    games: parseInt(row[6]) || 0,
+                    grade: row[8] || '',
+                    phone: row[9] || '',
+                    info: row[10] || '',
+                    school: row[11] || '',
+                    room: row[12] || '',
+                    lastRankDate1: parseInt(row[13]) || 0,
+                    lastRankDate2: parseInt(row[14]) || 0,
+                    lastRankDate3: parseInt(row[15]) || 0,
+                    lastRankDate4: parseInt(row[16]) || 0,
+                    lastRankDate5: parseInt(row[17]) || 0,
+                    lastRankDate6: parseInt(row[18]) || 0,
+                    lastRankDate7: parseInt(row[19]) || 0,
+                    lastRankDate8: parseInt(row[20]) || 0,
+                    lastRankDate9: parseInt(row[21]) || 0,
+                    lastRankDate10: parseInt(row[22]) || 0,
+                    lastRankDate11: parseInt(row[23]) || 0,
+                    lastRankDate12: parseInt(row[24]) || 0,
+                    lastRankDate13: parseInt(row[25]) || 0,
+                    lastRankDate14: parseInt(row[26]) || 0,
+                    lastRankDate15: parseInt(row[27]) || 0,
+                    lastRankDate16: parseInt(row[28]) || 0,
+                    lastRankDate17: parseInt(row[29]) || 0,
+                    lastRankDate18: parseInt(row[30]) || 0,
+                    lastRankDate19: parseInt(row[31]) || 0,
+                    lastRankDate20: parseInt(row[32]) || 0,
+                    lastRankDate21: parseInt(row[33]) || 0,
+                    lastRankDate22: parseInt(row[34]) || 0,
+                    lastRankDate23: parseInt(row[35]) || 0,
+                    lastRankDate24: parseInt(row[36]) || 0,
+                    lastRankDate25: parseInt(row[37]) || 0,
+                    lastRankDate26: parseInt(row[38]) || 0,
+                    lastRankDate27: parseInt(row[39]) || 0,
+                    lastRankDate28: parseInt(row[40]) || 0,
+                    lastRankDate29: parseInt(row[41]) || 0,
+                    lastRankDate30: parseInt(row[42]) || 0,
+                    lastRankDate31: parseInt(row[43]) || 0,
+                    createdAt: new Date().toISOString()
+                };
+
+                players.push(player);
+            }
+
+            saveGameData();
+            renderLadder();
+            showToast(`Imported ${players.length} players from file`, 'success');
+        }
+
+        function renderLadder() {
+            const tbody = document.getElementById('ladderTableBody');
+            
+            if (players.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="40" class="text-center py-5">
+                            <p class="text-muted">No data loaded yet. Please import an Excel file.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
+
+            tbody.innerHTML = sortedPlayers.map((player, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${(player.group || '').trim()}</td>
+                    <td>${(player.lastName || '').trim()}</td>
+                    <td>${(player.firstName || '').trim()}</td>
+                    <td><span class="badge-rank">${player.rating}</span></td>
+                    <td>${player.ranking}</td>
+                    <td>${player.newRating}</td>
+                    <td>${player.games}</td>
+                    <td>${getRankIndicator(player.lastRankDate1, index + 1)}</td>
+                    <td>${getRankIndicator(player.lastRankDate2, 11)}</td>
+                    <td>${getRankIndicator(player.lastRankDate3, 12)}</td>
+                    <td>${getRankIndicator(player.lastRankDate4, 13)}</td>
+                    <td>${getRankIndicator(player.lastRankDate5, 14)}</td>
+                    <td>${getRankIndicator(player.lastRankDate6, 15)}</td>
+                    <td>${getRankIndicator(player.lastRankDate7, 16)}</td>
+                    <td>${getRankIndicator(player.lastRankDate8, 17)}</td>
+                    <td>${getRankIndicator(player.lastRankDate9, 18)}</td>
+                    <td>${getRankIndicator(player.lastRankDate10, 19)}</td>
+                    <td>${getRankIndicator(player.lastRankDate11, 20)}</td>
+                    <td>${getRankIndicator(player.lastRankDate12, 21)}</td>
+                    <td>${getRankIndicator(player.lastRankDate13, 22)}</td>
+                    <td>${getRankIndicator(player.lastRankDate14, 23)}</td>
+                    <td>${getRankIndicator(player.lastRankDate15, 24)}</td>
+                    <td>${getRankIndicator(player.lastRankDate16, 25)}</td>
+                    <td>${getRankIndicator(player.lastRankDate17, 26)}</td>
+                    <td>${getRankIndicator(player.lastRankDate18, 27)}</td>
+                    <td>${getRankIndicator(player.lastRankDate19, 28)}</td>
+                    <td>${getRankIndicator(player.lastRankDate20, 29)}</td>
+                    <td>${getRankIndicator(player.lastRankDate21, 30)}</td>
+                    <td>${getRankIndicator(player.lastRankDate22, 31)}</td>
+                    <td>${getRankIndicator(player.lastRankDate23, 32)}</td>
+                    <td>${getRankIndicator(player.lastRankDate24, 33)}</td>
+                    <td>${getRankIndicator(player.lastRankDate25, 34)}</td>
+                    <td>${getRankIndicator(player.lastRankDate26, 35)}</td>
+                    <td>${getRankIndicator(player.lastRankDate27, 36)}</td>
+                    <td>${getRankIndicator(player.lastRankDate28, 37)}</td>
+                    <td>${getRankIndicator(player.lastRankDate29, 38)}</td>
+                    <td>${getRankIndicator(player.lastRankDate30, 39)}</td>
+                    <td>${getRankIndicator(player.lastRankDate31, 40)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getRankIndicator(rankDate, maxDate) {
+            if (!rankDate || rankDate === 0) return '';
+            if (rankDate > maxDate) return '<span class="status-up">↑</span>';
+            if (rankDate < index + 1) return '<span class="status-down">↓</span>';
+            return '●';
+        }
+
+        function exportToExcel() {
+            if (players.length === 0) {
+                showToast('No data to export', 'warning');
+                return;
+            }
+
+            const header = ['Group', 'Last Name', 'First Name', 'Rating', 'Rank', 'New Rating', 'Games', 'Grade', 'Phone', 'Info', 'School', 'Room'];
+            const dateHeaders = Array.from({length: 31}, (_, i) => `Last Rank Date ${i + 1}`);
+            const allHeaders = [...header, ...dateHeaders];
+
+            const dataRows = players.map(p => [
+                p.group,
+                p.lastName,
+                p.firstName,
+                p.rating,
+                p.ranking,
+                p.newRating,
+                p.games,
+                p.grade,
+                p.phone,
+                p.info,
+                p.school,
+                p.room,
+                p.lastRankDate1,
+                p.lastRankDate2,
+                p.lastRankDate3,
+                p.lastRankDate4,
+                p.lastRankDate5,
+                p.lastRankDate6,
+                p.lastRankDate7,
+                p.lastRankDate8,
+                p.lastRankDate9,
+                p.lastRankDate10,
+                p.lastRankDate11,
+                p.lastRankDate12,
+                p.lastRankDate13,
+                p.lastRankDate14,
+                p.lastRankDate15,
+                p.lastRankDate16,
+                p.lastRankDate17,
+                p.lastRankDate18,
+                p.lastRankDate19,
+                p.lastRankDate20,
+                p.lastRankDate21,
+                p.lastRankDate22,
+                p.lastRankDate23,
+                p.lastRankDate24,
+                p.lastRankDate25,
+                p.lastRankDate26,
+                p.lastRankDate27,
+                p.lastRankDate28,
+                p.lastRankDate29,
+                p.lastRankDate30,
+                p.lastRankDate31
+            ]);
+
+            const lines = [allHeaders.join('\t'), ...dataRows.map(row => row.join('\t'))];
+
+            const blob = new Blob(lines.join('\n') + '\n', { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Bughouse_Ladder_${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+
+            showToast('Tab-delimited file exported successfully', 'success');
+        }
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastElement = document.createElement('div');
+            toastElement.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            toastElement.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toastElement);
+            const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                toastElement.remove();
+            });
+        }
+
+        function searchPlayers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (!searchTerm) {
+                renderLadder();
+                return;
+            }
+
+            const filteredPlayers = players.filter(p => 
+                (p.firstName || '').toLowerCase().includes(searchTerm) || 
+                (p.lastName || '').toLowerCase().includes(searchTerm) ||
+                (p.school || '').toLowerCase().includes(searchTerm)
+            );
+
+            const tbody = document.getElementById('ladderTableBody');
+            const sortedPlayers = [...filteredPlayers].sort((a, b) => b.rating - a.rating);
+
+            tbody.innerHTML = sortedPlayers.map((player, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${(player.group || '').trim()}</td>
+                    <td>${(player.lastName || '').trim()}</td>
+                    <td>${(player.firstName || '').trim()}</td>
+                    <td><span class="badge-rank">${player.rating}</span></td>
+                    <td>${player.ranking}</td>
+                    <td>${player.newRating}</td>
+                    <td>${player.games}</td>
+                    ${[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31].map(n => `
+                        <td>${getRankIndicator(player[`lastRankDate${n}`], index + 1 + (n - 1))}</td>
+                    `).join('')}
+                </tr>
+            `).join('');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
