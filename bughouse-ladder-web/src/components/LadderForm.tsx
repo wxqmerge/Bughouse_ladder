@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Save, X } from 'lucide-react';
 import type { PlayerData } from '../utils/hashUtils';
-import '../../css/index.css';
+import '../css/index.css';
 
 export default function LadderForm() {
   const [saveFlag, setSaveFlag] = useState(0);
