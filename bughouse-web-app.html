@@ -334,8 +334,15 @@
         }
 
         function processExcelData(jsonData, append = false) {
-            const firstCell = String(jsonData[0]?.[0] || '').toLowerCase().trim();
-            const startIndex = (firstCell === 'group' || firstCell.includes('group')) ? 0 : 1;
+            // Check if row 0 is a header row containing 'Group' regardless of case
+            const firstRow = jsonData[0];
+
+            // More robust header detection
+            const firstCell = String(firstRow?.[0] || '').trim();
+            const headerString = firstCell.toLowerCase();
+            const isHeader = headerString === 'group' || headerString.includes('group');
+
+            const startIndex = isHeader ? 1 : 0;
 
             if (!append) {
                 players = [];
