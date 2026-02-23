@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bughouse Chess Ladder</title>
-    <meta name="version" content="1.1.0">
+    <meta name="version" content="1.1.1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -135,7 +135,7 @@
             <a class="navbar-brand" href="#">
                 <i class="bi bi-chess-king"></i> Bughouse Chess Ladder
             </a>
-            <small class="text-white-50 me-3">v1.1.0</small>
+            <small class="text-white-50 me-3">v1.1.1</small>
             <div class="d-flex align-items-center">
                 <div class="search-box me-3">
                     <i class="bi bi-search text-primary"></i>
@@ -482,10 +482,10 @@
             `).join('');
         }
 
-        function getRankIndicator(rankDate, maxDate) {
+        function getRankIndicator(rankDate, expectedRank) {
             if (!rankDate || rankDate === 0) return '';
-            if (rankDate > maxDate) return '<span class="status-up">↑</span>';
-            if (rankDate < index + 1) return '<span class="status-down">↓</span>';
+            if (rankDate > expectedRank) return '<span class="status-up">↑</span>';
+            if (rankDate < expectedRank) return '<span class="status-down">↓</span>';
             return '●';
         }
 
