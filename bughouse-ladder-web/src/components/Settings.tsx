@@ -5,8 +5,8 @@
 
 import { useState, useEffect } from 'react';
 import { X, Save, Settings as SettingsIcon } from 'lucide-react';
-import type { PlayerData } from './hashUtils';
-import './css/index.css';
+import type { PlayerData } from '../utils/hashUtils';
+import '../../css/index.css';
 
 interface SettingsProps {
   onClose: () => void;

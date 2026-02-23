@@ -1,13 +1,16 @@
-import React from 'react';
+import { useState } from 'react';
+import LadderForm from './components/LadderForm';
+import Settings from './components/Settings';
+import './css/index.css';
 
 function App() {
+  const [showSettings, setShowSettings] = useState(false);
+
   return (
-    <div>
-      <h1>Bughouse Chess Ladder - Web Version</h1>
-      <p>Application is running successfully!</p>
-      <p>Core translation complete. Sample data loaded.</p>
-      <p>Features: Grid display, player editing, settings modal, auto-save</p>
-    </div>
+    <>
+      <LadderForm />
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
+    </>
   );
 }
 
