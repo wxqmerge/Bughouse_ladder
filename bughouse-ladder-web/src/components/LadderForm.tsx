@@ -5,6 +5,7 @@ import '../css/index.css';
 export default function LadderForm() {
   const [players, setPlayers] = useState<PlayerData[]>([]);
 
+  // VB6 Line: 894 - Initialize with sample data
   useEffect(() => {
     const samplePlayers: PlayerData[] = [
       {
@@ -114,8 +115,77 @@ export default function LadderForm() {
       },
     ];
 
+    const settings = localStorage.getItem('ladder_settings');
+    console.log('Settings loaded:', settings);
+
+    // Try to load from LocalStorage first
+    const savedPlayers = localStorage.getItem('ladder_players');
+    if (savedPlayers) {
+      try {
+        const parsed = JSON.parse(savedPlayers);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('Loading players from LocalStorage:', parsed);
+          setPlayers(parsed);
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to parse players:', err);
+      }
+    }
+
+    // Use sample data as fallback
     setPlayers(samplePlayers);
   }, []);
+
+  // VB6 Line: 723-745 - Load players function
+  const loadPlayers = () => {
+    const savedPlayers = localStorage.getItem('ladder_players');
+    if (savedPlayers) {
+      try {
+        const parsed = JSON.parse(savedPlayers);
+        if (Array.isArray(parsed)) {
+          setPlayers(parsed);
+          alert('Players loaded successfully!');
+        }
+      } catch (err) {
+        alert('Failed to load players.');
+      }
+    } else {
+      alert('No saved data found.');
+    }
+  };
+
+  // Auto-save function (VB6 Idle_Timer equivalent)
+  const autoSave = () => {
+    localStorage.setItem('ladder_players', JSON.stringify(players));
+    localStorage.setItem('ladder_settings', JSON.stringify({
+      kFactor: 32,
+      showRatings: [true, true, true, true]
+    }));
+    console.log('Auto-saved ' + players.length + ' players');
+  };
+
+  const handleSave = () => {
+    autoSave();
+    alert('Players saved successfully!');
+  };
+
+  const handleLoad = () => {
+    const savedPlayers = localStorage.getItem('ladder_players');
+    if (savedPlayers) {
+      try {
+        const parsed = JSON.parse(savedPlayers);
+        if (Array.isArray(parsed)) {
+          setPlayers(parsed);
+          alert('Players loaded successfully!');
+        }
+      } catch (err) {
+        alert('Failed to load players.');
+      }
+    } else {
+      alert('No saved data found in LocalStorage.');
+    }
+  };
 
   if (!players || players.length === 0) {
     return (
@@ -143,36 +213,62 @@ export default function LadderForm() {
         marginBottom: '1rem',
         padding: '1rem'
       }}>
-        <button style={{
-          background: '#2563eb',
-          color: 'white',
-          border: 'none',
-          padding: '0.5rem 1rem',
-          borderRadius: '0.25rem',
-          cursor: 'pointer'
-        }}>
+        <button
+          style={{
+            background: '#10b981',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={loadPlayers}
+        >
+          Load
+        </button>
+
+        <button
+          style={{
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={handleSave}
+        >
           Save
         </button>
 
-        <button style={{
-          background: 'white',
-          color: 'black',
-          border: '1px solid #cbd5e1',
-          padding: '0.5rem 1rem',
-          borderRadius: '0.25rem',
-          cursor: 'pointer'
-        }}>
+        <button
+          style={{
+            background: 'white',
+            color: 'black',
+            border: '1px solid #cbd5e1',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            localStorage.setItem('ladder_players', JSON.stringify(players));
+            alert('Players saved to LocalStorage!');
+          }}
+        >
           Zoom: 100%
         </button>
 
-        <button style={{
-          background: 'white',
-          color: 'black',
-          border: '1px solid #cbd5e1',
-          padding: '0.5rem 1rem',
-          borderRadius: '0.25rem',
-          cursor: 'pointer'
-        }}>
+        <button
+          style={{
+            background: 'white',
+            color: 'black',
+            border: '1px solid #cbd5e1',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={loadPlayers}
+        >
           Wide
         </button>
       </div>
@@ -209,7 +305,7 @@ export default function LadderForm() {
                   backgroundColor: '#0f172a',
                   color: 'white'
                 }}>
-                  {field === 'group' && `Group ${field.charAt(0).toUpperCase() + field.slice(1)} X`}
+                  {field === 'group' && 'Group'}
                   {field === 'lastName' && 'Last Name'}
                   {field === 'firstName' && 'First Name'}
                   {field === 'rating' && 'Rating'}
