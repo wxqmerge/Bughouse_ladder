@@ -154,7 +154,7 @@ export default function LadderForm() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
-      const loadedPlayers: PlayerData[] = [];
+      let loadedPlayers: PlayerData[] = [];
       const allGameResults: (string | null)[][] = [];
       const numRounds = 29;
       
@@ -211,8 +211,13 @@ export default function LadderForm() {
         allGameResults.push(gameResults);
       }
 
-      if (loadedPlayers.length > 0) {
-        loadedPlayers.sort((a, b) => a.rank - b.rank);
+       // Max 200 players limit
+       if (loadedPlayers.length > 200) {
+         loadedPlayers = loadedPlayers.slice(0, 200);
+       }
+
+       if (loadedPlayers.length > 0) {
+         loadedPlayers.sort((a, b) => a.rank - b.rank);
         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
         localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
         setPlayers(loadedPlayers);
@@ -385,11 +390,11 @@ export default function LadderForm() {
                   backgroundColor: '#0f172a',
                   color: 'white'
                 }}>
-                  {field === 'rank' && 'Rnk'}
-                  {field === 'group' && 'Group'}
-                  {field === 'lastName' && 'Last Name'}
-                  {field === 'firstName' && 'First Name'}
-                  {field === 'rating' && 'Rating'}
+                   {field === 'rank' && 'Rnk'}
+                   {field === 'group' && 'Group'}
+                   {field === 'lastName' && 'Last Name'}
+                   {field === 'firstName' && 'First Name'}
+                   {field === 'rating' && 'Previous Rating'}
                   {field === 'nRating' && 'New Rating'}
                   {field !== 'rank' && field !== 'group' && field !== 'lastName' && field !== 'firstName' && field !== 'rating' && field !== 'nRating' && (field.charAt(0).toUpperCase() + field.slice(1))}
                 </th>
@@ -406,26 +411,27 @@ export default function LadderForm() {
                 <tr key={player.rank} style={{
                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
                 }}>
-                    {Object.keys(player).filter((_, i) => i < 5).map((field, col) => (
-                    <td key={`${row}-${col}`} style={{
-                      padding: '0.5rem 0.75rem',
-                      borderBottom: '1px solid #e2e8f0',
-                      verticalAlign: 'middle',
-                    borderRight: "1px solid #e2e8f0",
-                      backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
-                    }}>
-                      {field === 'rank' && player.rank}
-                      {field === 'group' && player.group}
-                      {field === 'lastName' && player.lastName}
-                      {field === 'firstName' && player.firstName}
-                      {field === 'rating' && player.rating > 0 ? player.rating : '-'}
-                    </td>
-                  ))}
-                  {gameResults.map((result, gCol) => (
+                     {Object.keys(player).filter((_, i) => i < 5).map((field, col) => (
+                     <td key={`${row}-${col}`} style={{
+                       padding: '0.5rem 0.75rem',
+                       borderBottom: '1px solid #e2e8f0',
+                       verticalAlign: 'middle',
+                       borderRight: "1px solid #e2e8f0",
+                       backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
+                     }}>
+                       {field === 'rank' && player.rank}
+                       {field === 'group' && player.group}
+                       {field === 'lastName' && player.lastName}
+                       {field === 'firstName' && player.firstName}
+                       {field === 'rating' && player.rating > 0 ? player.rating : '-'}
+                     </td>
+                   ))}
+                   {gameResults.map((result, gCol) => (
                     <td key={`game-${row}-${gCol}`} style={{
                       padding: '0.5rem 0.75rem',
                       borderBottom: '1px solid #e2e8f0',
                       verticalAlign: 'middle',
+                      borderRight: "1px solid #e2e8f0",
                       backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
                       fontSize: '0.75rem'
                     }}>
