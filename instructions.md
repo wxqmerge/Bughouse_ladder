@@ -22,8 +22,8 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Column 0**: Group
 - **Column 1**: Last Name
 - **Column 2**: First Name
-- **Column 3**: previous Rating
-- **Column 4**: Rank (Rnk)
+- **Column 3**: Rating (previous)
+- **Column 4**: Rnk (Rank)
 - **Column 5**: New Rating (caculated)
 - **Column 6-12**: player data only displayed in admin mode
 - **Column 13-44**: Round results (columns 1-31 in the display grid)

@@ -381,22 +381,76 @@ export default function LadderForm() {
         }}>
           <thead>
             <tr>
-              {Object.keys(players[0] || {}).map((field, index) => (
-                <th key={`head-${field}-${index}`} style={{
+              <th key="head-group" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                Group
+              </th>
+              <th key="head-lastName" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                Last Name
+              </th>
+              <th key="head-firstName" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                First Name
+              </th>
+              <th key="head-rating" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                Previous Rating
+              </th>
+              <th key="head-rank" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                Rnk
+              </th>
+              <th key="head-nRating" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                New Rating
+              </th>
+              {Array.from({ length: 31 }).map((_, round) => (
+                <th key={`head-round-${round}`} style={{
                   padding: '0.5rem 0.75rem',
-                  textAlign: 'left',
+                  textAlign: 'center',
                   fontWeight: '500',
                   borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
                   backgroundColor: '#0f172a',
                   color: 'white'
                 }}>
-                   {field === 'rank' && 'Rnk'}
-                   {field === 'group' && 'Group'}
-                   {field === 'lastName' && 'Last Name'}
-                   {field === 'firstName' && 'First Name'}
-                   {field === 'rating' && 'Previous Rating'}
-                  {field === 'nRating' && 'New Rating'}
-                  {field !== 'rank' && field !== 'group' && field !== 'lastName' && field !== 'firstName' && field !== 'rating' && field !== 'nRating' && (field.charAt(0).toUpperCase() + field.slice(1))}
+                  Round {round + 1}
                 </th>
               ))}
             </tr>
