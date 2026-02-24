@@ -156,49 +156,59 @@ export default function LadderForm() {
       const lines = text.split('\n');
       const loadedPlayers: PlayerData[] = [];
       const allGameResults: (string | null)[][] = [];
+      const numRounds = 29;
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
+        
         if (!line) continue;
-
+        
+        if (line.startsWith('Group')) continue;
+        
         const parts = line.split('\t');
-        if (parts.length < 5) continue;
+        if (parts.length < 15) continue;
 
         const lastChar = parts[parts.length - 1];
         const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
         
         const cols: (string | null)[] = [];
         for (let j = 0; j < parts.length && j < hasTail; j++) {
-          let value = parts[j].trim();
+          let value: string | null = parts[j].trim() || null;
           if (j === parts.length - 1 && value === '' && lastChar === '') {
             const prevChar = parts[Math.max(0, parts.length - 2)];
             if (prevChar.match(/^\d+$/)) {
-              value = prevChar.slice(0, -1);
+              value = prevChar.slice(0, -1).trim() || null;
             }
           }
+          
           cols.push(value);
         }
 
         const player: PlayerData = {
           rank: cols[4] ? parseInt(cols[4]) : 0,
-          group: cols[0] || '',
-          lastName: cols[1] || '',
-          firstName: cols[2] || '',
-          rating: cols[3] ? parseInt(cols[3]) : -1,
-          nRating: cols[5] ? parseInt(cols[5]) : 0,
-          grade: cols[6] || 'N/A',
-          games: cols[7] ? parseInt(cols[7]) : 0,
-          attendance: cols[8] ? parseInt(cols[8]) : 0,
-          info: cols[10] || '',
-          phone: cols[9] || '',
-          school: cols[11] || '',
-          room: cols[12] || '',
+          group: cols[0] !== null ? cols[0] : '',
+          lastName: cols[1] !== null ? cols[1] : '',
+          firstName: cols[2] !== null ? cols[2] : '',
+          rating: cols[3] !== null && cols[3] !== '' ? parseInt(cols[3]) : -1,
+          nRating: cols[5] !== null && cols[5] !== '' ? parseInt(cols[5]) : 0,
+          grade: cols[6] !== null ? cols[6] : 'N/A',
+          games: cols[7] !== null ? parseInt(cols[7]) : 0,
+          attendance: cols[8] !== null ? parseInt(cols[8]) : 0,
+          phone: cols[9] !== null ? cols[9] : '',
+          info: cols[10] !== null ? cols[10] : '',
+          school: cols[11] !== null ? cols[11] : '',
+          room: cols[12] !== null ? cols[12] : '',
         };
 
-        loadedPlayers.push(player);
-        if (cols.length > 12) {
-          allGameResults.push(cols.slice(13));
+        if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName)) {
+          loadedPlayers.push(player);
         }
+
+        const gameResults: (string | null)[] = [];
+        for (let g = 0; g < numRounds; g++) {
+          gameResults.push(cols[13 + g]);
+        }
+        allGameResults.push(gameResults);
       }
 
       if (loadedPlayers.length > 0) {
