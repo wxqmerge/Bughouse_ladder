@@ -18,15 +18,26 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Persistence**: Data persists in browser LocalStorage until explicitly cleared
 
 
-### Data Structure Mapping
-- **Column 0**: Group
-- **Column 1**: Last Name
-- **Column 2**: First Name
-- **Column 3**: Rating (previous)
-- **Column 4**: Rnk (Rank)
+### Data Structure Mapping Displayed
+- **Column 0**: Rnk (Rank)
+- **Column 1**: Group
+- **Column 2**: Last Name
+- **Column 3**: First Name
+- **Column 4**: Rating (previous)
 - **Column 5**: New Rating (caculated)
 - **Column 6-12**: player data only displayed in admin mode
 - **Column 13-44**: Round results (columns 1-31 in the display grid)
+
+### Data Structure Mapping For File i/o
+- **Column 0**: Group
+- **Column 1**: Last Name
+- **Column 2**: First Name
+- **Column 3**: Rnk (Rank)
+- **Column 4**: Rating (previous)
+- **Column 5**: New Rating (caculated)
+- **Column 6-12**: player data only displayed in admin mode
+- **Column 13-44**: Round results (columns 1-31 in the display grid)
+
 
 ## Sorting and Display
 

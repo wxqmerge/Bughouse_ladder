@@ -145,18 +145,13 @@ export default function LadderForm() {
       return;
     }
 
-    if (!fileToLoad.name.endsWith('.txt') && !fileToLoad.name.endsWith('.tab')) {
-      alert('Please select a .txt file (tab-delimited format).');
-      return;
-    }
-
-    const reader = new FileReader();
+        const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
       let loadedPlayers: PlayerData[] = [];
       const allGameResults: (string | null)[][] = [];
-      const numRounds = 29;
+      const numRounds = 31;
       
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -166,7 +161,7 @@ export default function LadderForm() {
         if (line.startsWith('Group')) continue;
         
         const parts = line.split('\t');
-        if (parts.length < 15) continue;
+        //if (parts.length < 14) continue;  // Need at least columns 0-13
 
         const lastChar = parts[parts.length - 1];
         const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
@@ -186,10 +181,10 @@ export default function LadderForm() {
 
         const player: PlayerData = {
           rank: cols[4] ? parseInt(cols[4]) : 0,
-          group: cols[0] !== null ? cols[0] : '',
+          group: cols[0] && cols[0].trim() !== '' ? cols[0].trim() : '',
           lastName: cols[1] !== null ? cols[1] : '',
           firstName: cols[2] !== null ? cols[2] : '',
-          rating: cols[3] !== null && cols[3] !== '' ? parseInt(cols[3]) : -1,
+          rating: cols[3] ? parseInt(cols[3].trim() || -1) : -1,
           nRating: cols[5] !== null && cols[5] !== '' ? parseInt(cols[5]) : 0,
           grade: cols[6] !== null ? cols[6] : 'N/A',
           games: cols[7] !== null ? parseInt(cols[7]) : 0,
@@ -200,7 +195,8 @@ export default function LadderForm() {
           room: cols[12] !== null ? cols[12] : '',
         };
 
-        if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName)) {
+        if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName || player.nRating !== 0)) 
+        {
           loadedPlayers.push(player);
         }
 
@@ -306,7 +302,7 @@ export default function LadderForm() {
           <input
             type="file"
             ref={fileInputRef}
-            accept=".txt,.tab"
+            accept=".txt,.tab,.xls"
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files?.[0];
