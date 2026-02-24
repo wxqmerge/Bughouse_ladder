@@ -10,6 +10,7 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Supported File extensions**: `.xls`, `.txt` 
 - **Header Detection**: Automatically detects and skips rows starting with "Group" during import
 - **Data Persistence**: Saves to `localStorage` for session persistence
+- **Data Limits**: read upto 200 players
 
 ### Browser Storage
 - **Store Key**: `ladder_players` - JSON array of player objects
@@ -33,7 +34,8 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Primary Sort**: The value of the `Rnk` column is the row position the player should be in
 
 
-### Grid Display (User Mode)
+### Grid Display (User Mode) 
+- **Grid display**:with vertical lines and zebra coloring
 - **Column 0**: Group
 - **Column 1**: Last Name
 - **Column 2**: First Name

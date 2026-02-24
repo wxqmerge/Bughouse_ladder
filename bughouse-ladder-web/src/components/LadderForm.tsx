@@ -411,6 +411,7 @@ export default function LadderForm() {
                       padding: '0.5rem 0.75rem',
                       borderBottom: '1px solid #e2e8f0',
                       verticalAlign: 'middle',
+                    borderRight: "1px solid #e2e8f0",
                       backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
                     }}>
                       {field === 'rank' && player.rank}
