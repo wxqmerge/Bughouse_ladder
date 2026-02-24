@@ -6,11 +6,16 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 ## Data Handling
 
 ### Import Files
-- **Supported Formats**: `.xls`, `.txt` (tab-delimited files)
+- **Supported Formats**: tab-delimited files
+- **Supported File extensions**: `.xls`, `.txt` 
 - **Header Detection**: Automatically detects and skips rows starting with "Group" during import
 - **Data Persistence**: Saves to `localStorage` for session persistence
-- **Auto-load Fallback**: Attempts to load `players.txt` automatically if no saved or imported data exists
-- **Auto-load settings**: load settings from ladder.json (old format ladder.ini)
+
+### Browser Storage
+- **Store Key**: `ladder_players` - JSON array of player objects
+- **Settings Key**: `ladder_settings` - Stores app configuration
+- **Persistence**: Data persists in browser LocalStorage until explicitly cleared
+
 
 ### Data Structure Mapping
 - **Column 0**: Group
@@ -53,5 +58,11 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Format**: "v1.3.2" style versioning for tracking updates
 
 ## File Requirements
-- **Import Files**: Excel files or tab-delimited text files from `MiniGame.xls` format
-- **Fallback File**: `players.txt` in same directory as HTML file (tab-delimited)
+- **Import Files**: tab-delimited text files from `MiniGame.xls` format
+
+### LocalStorage Implementation
+The application uses browser LocalStorage API for data and settings persistence:
+- **Read**: `localStorage.getItem('ladder_players')`
+- **Write**: `localStorage.setItem('ladder_players', JSON.stringify(players))`
+- **Clear**: `localStorage.clear()` to reset all data
+
