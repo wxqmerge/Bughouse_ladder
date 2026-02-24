@@ -4,6 +4,7 @@ import '../css/index.css';
 
 export default function LadderForm() {
   const [players, setPlayers] = useState<PlayerData[]>([]);
+  const [isWide, setIsWide] = useState(false);
 
   // VB6 Line: 894 - Initialize with sample data
   useEffect(() => {
@@ -155,36 +156,19 @@ export default function LadderForm() {
     }
   };
 
-  // Auto-save function (VB6 Idle_Timer equivalent)
-  const autoSave = () => {
+  // Save players to LocalStorage
+  const savePlayers = () => {
     localStorage.setItem('ladder_players', JSON.stringify(players));
     localStorage.setItem('ladder_settings', JSON.stringify({
       kFactor: 32,
       showRatings: [true, true, true, true]
     }));
-    console.log('Auto-saved ' + players.length + ' players');
-  };
-
-  const handleSave = () => {
-    autoSave();
     alert('Players saved successfully!');
   };
 
-  const handleLoad = () => {
-    const savedPlayers = localStorage.getItem('ladder_players');
-    if (savedPlayers) {
-      try {
-        const parsed = JSON.parse(savedPlayers);
-        if (Array.isArray(parsed)) {
-          setPlayers(parsed);
-          alert('Players loaded successfully!');
-        }
-      } catch (err) {
-        alert('Failed to load players.');
-      }
-    } else {
-      alert('No saved data found in LocalStorage.');
-    }
+  // Toggle wide/narrow layout
+  const toggleWide = () => {
+    setIsWide(!isWide);
   };
 
   if (!players || players.length === 0) {
@@ -236,7 +220,7 @@ export default function LadderForm() {
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={handleSave}
+          onClick={savePlayers}
         >
           Save
         </button>
@@ -250,12 +234,9 @@ export default function LadderForm() {
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={() => {
-            localStorage.setItem('ladder_players', JSON.stringify(players));
-            alert('Players saved to LocalStorage!');
-          }}
+          onClick={() => alert('Zoom level saved')}
         >
-          Zoom: 100%
+          Zoom: {isWide ? '140%' : '100%'}
         </button>
 
         <button
@@ -267,9 +248,9 @@ export default function LadderForm() {
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={loadPlayers}
+          onClick={toggleWide}
         >
-          Wide
+          {isWide ? 'Narrow' : 'Wide'}
         </button>
       </div>
 

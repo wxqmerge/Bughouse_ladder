@@ -110,6 +110,8 @@ let players = [
   - [x] `DataHash(skey, sval, hash_method)` - COMPLETE
   - [x] `swapint(a, b)` - COMPLETE
   - [x] `reset_placement()` - COMPLETE
+  - [x] `Load functionality` - COMPLETE v1.0.1
+  - [x] `Save functionality` - COMPLETE v1.0.1
 
 **VB6 Reference**: hash.bas:42-86, common.bas:107-380
 
