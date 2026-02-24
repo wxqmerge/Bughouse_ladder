@@ -5,7 +5,6 @@
 
 import { useState, useEffect } from 'react';
 import { X, Save, Settings as SettingsIcon } from 'lucide-react';
-import type { PlayerData } from '../utils/hashUtils';
 import '../css/index.css';
 
 interface SettingsProps {
@@ -13,14 +12,14 @@ interface SettingsProps {
 }
 
 export default function Settings({ onClose }: SettingsProps) {
-  const [kFactor, setKFactor] = useState(32);
+  const [showRatings, setShowRatings] = useState(true);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('ladder_settings');
     if (savedSettings) {
       try {
         const parsedSettings = JSON.parse(savedSettings);
-        setKFactor(parsedSettings.kFactor || 32);
+        setShowRatings(parsedSettings.showRatings ?? true);
       } catch (err) {
         console.error('Failed to parse settings:', err);
       }
@@ -29,8 +28,7 @@ export default function Settings({ onClose }: SettingsProps) {
 
   const handleSave = () => {
     const settings = {
-      kFactor,
-      showRatings: [true, true, true, true]
+      showRatings: [showRatings, showRatings, showRatings, showRatings]
     };
     localStorage.setItem('ladder_settings', JSON.stringify(settings));
     onClose();
@@ -75,34 +73,17 @@ export default function Settings({ onClose }: SettingsProps) {
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            K-Factor
-          </label>
-          <input
-            type="number"
-            value={kFactor}
-            onChange={(e) => setKFactor(parseInt(e.target.value) || 32)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              borderRadius: '0.25rem',
-              border: '1px solid var(--border-color)'
-            }}
-          />
-          <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem' }}>
-            A1 - I, Z groups based on rating
-          </p>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <input
               type="checkbox"
-              checked={kFactor > 0}
-              onChange={(e) => setKFactor(parseInt(e.target.value) || 32)}
+              checked={showRatings}
+              onChange={(e) => setShowRatings(e.target.checked)}
             />
-            Show ratings
+            <span>Show ratings</span>
           </label>
+          <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem' }}>
+            A1 - A8, I1 - I8, Z1 - Z8 groups based on rating
+          </p>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>
