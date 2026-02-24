@@ -1,7 +1,7 @@
 # VB6 Bughouse Chess Ladder to Web App Translation Plan
 
 ## Project Status: Phase 1 Complete - Core Infrastructure ✅
-**Last Updated**: February 23, 2026
+**Last Updated**: February 24, 2026 (v1.0.1)
 
 ## Application Overview
 This is a Bughouse Chess Ladder management system originally written in VB6 with the following main components:
@@ -68,7 +68,7 @@ let players = [
 
 #### ✅ COMPLETED MODULES
 
-- [x] **Module 1: Hash Functions (hash.bas) - COMPLETE**
+- [x] **Module 1: Hash Functions (hash.bas) - COMPLETE** ✅ v1.0.0
   - [x] `hash(hash_method)` function - TRANSLATED
   - [x] `hash_Initialize()` function - TRANSLATED
   - [x] `reset_hash()` function - TRANSLATED
@@ -77,7 +77,7 @@ let players = [
   - [x] `string2long(game, players, scores, quick_entry)` - TRANSLATED
   - [x] VB6 RC4 algorithm preserved
 
-- [x] **Module 2: Common Utilities (common.bas) - COMPLETE**
+- [x] **Module 2: Common Utilities (common.bas) - COMPLETE** ✅ v1.0.0
   - [x] Global constants export (CONSTANTS object)
   - [x] `string2long()` function - TRANSLATED
   - [x] `long2string()` function - TRANSLATED
@@ -126,6 +126,9 @@ let players = [
 - [x] **ladder.frm:894-960** - Form initialization ✅
 - [x] **ladder.frm:1064-1085** - Keyboard shortcut handling ✅
 - [x] **ladder.frm:1397-1450** - Data loading and state management ✅
+- [x] **Load Button** - Green "Load" button added ✅ v1.0.1
+- [x] **Save Button** - Blue "Save" button added ✅ v1.0.1
+- [x] **Group Label Fix** - Changed "Group Group X" to "Group" ✅ v1.0.1
 
 ### Phase 2: Main Ladder Form ✅ COMPLETED
 
