@@ -212,6 +212,7 @@ export default function LadderForm() {
       }
 
       if (loadedPlayers.length > 0) {
+        loadedPlayers.sort((a, b) => a.rank - b.rank);
         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
         localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
         setPlayers(loadedPlayers);
