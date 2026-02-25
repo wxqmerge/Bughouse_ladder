@@ -232,9 +232,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     reader.readAsText(fileToLoad);
   };
 
-  const savePlayers = () => {
+  const exportToNewFile = () => {
     if (players.length === 0) {
-      alert('No players to save.');
+      alert('No players to export.');
       return;
     }
 
@@ -242,7 +242,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     const gameResultsStr = localStorage.getItem('ladder_game_results');
     const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
 
-    for (let i = 0; i < Math.max(players.length, allGameResults.length); i++) {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `players_${timestamp}.txt`;
+
+    for (let i = 0; i < players.length; i++) {
       const player = players[i];
       const gameResults = allGameResults[i] || new Array(20).fill('');
 
@@ -255,12 +258,31 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'players.txt';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('Players saved as players.txt');
+    alert(`Exported as ${filename}`);
+  };
+
+  const saveLocalStorage = () => {
+    if (players.length === 0) {
+      alert('No players to save.');
+      return;
+    }
+
+    try {
+      localStorage.setItem('ladder_players', JSON.stringify(players));
+
+      const gameResultsStr = localStorage.getItem('ladder_game_results');
+      const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
+
+      localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
+      alert('Saved to browser storage');
+    } catch (error) {
+      alert('Error saving to storage');
+    }
   };
 
   if (!players || players.length === 0) {
@@ -353,7 +375,21 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={savePlayers}
+          onClick={exportToNewFile}
+        >
+          Export
+        </button>
+
+        <button
+          style={{
+            background: '#f59e0b',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={saveLocalStorage}
         >
           Save
         </button>
