@@ -191,7 +191,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           lastName: cols[1] !== null ? cols[1] : '',
           firstName: cols[2] !== null ? cols[2] : '',
           rating: cols[3] ? parseInt(String(cols[3]).trim() || '-1') : -1,
-          nRating: cols[5] !== null && cols[5] !== '' ? parseInt(cols[5]) : 0,
+          nRating: 0,
           grade: cols[6] !== null ? cols[6] : 'N/A',
           games: cols[7] !== null ? parseInt(cols[7]) : 0,
           attendance: cols[8] !== null ? parseInt(cols[8]) : 0,
@@ -214,22 +214,65 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
       }
 
        // Max 200 players limit
-       if (loadedPlayers.length > 200) {
-         loadedPlayers = loadedPlayers.slice(0, 200);
-       }
+        if (loadedPlayers.length > 200) {
+          loadedPlayers = loadedPlayers.slice(0, 200);
+        }
 
-       if (loadedPlayers.length > 0) {
-         loadedPlayers.sort((a, b) => a.rank - b.rank);
-        localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-        localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
-        setPlayers(loadedPlayers);
-        alert(`Successfully loaded ${loadedPlayers.length} players from ${fileToLoad.name}`);
-      } else {
-        alert('No valid player data found in the file.');
-      }
+        if (loadedPlayers.length > 0) {
+          loadedPlayers.sort((a, b) => a.rank - b.rank);
+         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+         localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
+         setPlayers(loadedPlayers);
+         alert(`Successfully loaded ${loadedPlayers.length} players from ${fileToLoad.name}`);
+       } else {
+         alert('No valid player data found in the file.');
+       }
     };
     
     reader.readAsText(fileToLoad);
+  };
+
+  const recalculateRatings = () => {
+    const playersCopy = [...players];
+    const EloK = 20;
+    const EloMultiplier = 1;
+
+    playersCopy.forEach((player, index) => {
+      let totalScore = 0;
+      const gameResultsStr = localStorage.getItem('ladder_game_results');
+      const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
+      const gameResults = allGameResults[index] || new Array(20).fill('');
+
+      if (player.rating > 0) {
+        player.nRating = player.rating;
+
+        gameResults.forEach(result => {
+          if (result && result.match(/[WL]/i)) {
+            const opponent = playersCopy[index + 1];
+            if (opponent && opponent.rating > 0) {
+              const probability = formula(player.rating, opponent.rating);
+              if (result.toUpperCase() === 'W') {
+                totalScore += 1;
+              } else if (result.toUpperCase() === 'L') {
+                totalScore += 0;
+              }
+            }
+          }
+        });
+
+        if (totalScore > 0) {
+          player.nRating = Math.round(player.rating + (EloK * (totalScore - 0.5) * EloMultiplier * 2));
+        }
+
+        if (player.nRating < 0) {
+          player.nRating = 0;
+        }
+      }
+    });
+
+    setPlayers(playersCopy);
+    localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
+    alert('Ratings recalculated successfully!');
   };
 
   const exportToNewFile = () => {
@@ -366,33 +409,47 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           />
         </label>
 
-        <button
-          style={{
-            background: '#2563eb',
-            color: 'white',
-            border: 'none',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            cursor: 'pointer'
-          }}
-          onClick={exportToNewFile}
-        >
-          Export
-        </button>
+          <button
+            style={{
+              background: '#2563eb',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer'
+            }}
+            onClick={exportToNewFile}
+          >
+            Export
+          </button>
 
-        <button
-          style={{
-            background: '#f59e0b',
-            color: 'white',
-            border: 'none',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            cursor: 'pointer'
-          }}
-          onClick={saveLocalStorage}
-        >
-          Save
-        </button>
+          <button
+            style={{
+              background: '#f59e0b',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer'
+            }}
+            onClick={saveLocalStorage}
+          >
+            Save
+          </button>
+
+          <button
+            style={{
+              background: '#8b5cf6',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer'
+            }}
+            onClick={recalculateRatings}
+          >
+            Recalculate Ratings
+          </button>
 
         <button
           style={{
