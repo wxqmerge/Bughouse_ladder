@@ -548,14 +548,15 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                         onBlur={(e) => {
                           if (isEditable && e.target.textContent) {
                             const value = e.target.textContent;
+                            const newAllGameResults = allGameResults.map((r, i) => i === player.rank - 1 ? [...gameResults] : r);
+                            newAllGameResults[player.rank - 1][gCol] = value;
+                            player.rank - 1;
+                            localStorage.setItem('ladder_game_results', JSON.stringify(newAllGameResults));
                             setPlayers(prevPlayers => {
                               const updatedPlayers = [...prevPlayers];
                               const index = player.rank - 1;
                               if (updatedPlayers[index]) {
-                                const newResults = [...gameResults];
-                                newResults[gCol] = value;
-                                localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults.map((r, i) => i === player.rank - 1 ? newResults : r)));
-                                updatedPlayers[index] = { ...updatedPlayers[index], games: gameResults.filter(r => r !== null).length + 1 };
+                                updatedPlayers[index] = { ...updatedPlayers[index], games: updatedPlayers[index].games + (result ? 0 : 1) };
                               }
                               return updatedPlayers;
                             });
