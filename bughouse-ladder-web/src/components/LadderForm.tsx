@@ -189,7 +189,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           group: cols[0] && cols[0].trim() !== '' ? cols[0].trim() : '',
           lastName: cols[1] !== null ? cols[1] : '',
           firstName: cols[2] !== null ? cols[2] : '',
-          rating: cols[3] ? parseInt(cols[3].trim() || -1) : -1,
+          rating: cols[3] ? parseInt(String(cols[3]).trim() || '-1') : -1,
           nRating: cols[5] !== null && cols[5] !== '' ? parseInt(cols[5]) : 0,
           grade: cols[6] !== null ? cols[6] : 'N/A',
           games: cols[7] !== null ? parseInt(cols[7]) : 0,
@@ -413,6 +413,16 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         }}>
           <thead>
             <tr>
+              <th key="head-rank" style={{
+                padding: '0.5rem 0.75rem',
+                textAlign: 'left',
+                fontWeight: '500',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: '#0f172a',
+                color: 'white'
+              }}>
+                Rnk
+              </th>
               <th key="head-group" style={{
                 padding: '0.5rem 0.75rem',
                 textAlign: 'left',
@@ -453,16 +463,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               }}>
                 Previous Rating
               </th>
-              <th key="head-rank" style={{
-                padding: '0.5rem 0.75rem',
-                textAlign: 'left',
-                fontWeight: '500',
-                borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
-                backgroundColor: '#0f172a',
-                color: 'white'
-              }}>
-                Rnk
-              </th>
               <th key="head-nRating" style={{
                 padding: '0.5rem 0.75rem',
                 textAlign: 'left',
@@ -497,21 +497,22 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                 <tr key={player.rank} style={{
                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
                 }}>
-                     {Object.keys(player).filter((_, i) => i < 5).map((field, col) => (
-                     <td key={`${row}-${col}`} style={{
-                       padding: '0.5rem 0.75rem',
-                       borderBottom: '1px solid #e2e8f0',
-                       verticalAlign: 'middle',
-                       borderRight: "1px solid #e2e8f0",
-                       backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
-                     }}>
-                       {field === 'rank' && player.rank}
-                       {field === 'group' && player.group}
-                       {field === 'lastName' && player.lastName}
-                       {field === 'firstName' && player.firstName}
-                       {field === 'rating' && player.rating > 0 ? player.rating : '-'}
-                     </td>
-                   ))}
+                      {Object.keys(player).filter((_, i) => i < 6).map((field, col) => (
+                      <td key={`${row}-${col}`} style={{
+                        padding: '0.5rem 0.75rem',
+                        borderBottom: '1px solid #e2e8f0',
+                        verticalAlign: 'middle',
+                        borderRight: "1px solid #e2e8f0",
+                        backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
+                      }}>
+                        {field === 'rank' && player.rank}
+                        {field === 'group' && player.group}
+                        {field === 'lastName' && player.lastName}
+                        {field === 'firstName' && player.firstName}
+                        {field === 'rating' && player.rating > 0 ? player.rating : '-'}
+                        {field === 'nRating' && player.nRating > 0 ? player.nRating : '-'}
+                      </td>
+                    ))}
                    {gameResults.map((result, gCol) => (
                     <td key={`game-${row}-${gCol}`} style={{
                       padding: '0.5rem 0.75rem',

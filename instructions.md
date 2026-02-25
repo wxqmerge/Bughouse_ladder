@@ -18,16 +18,6 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 - **Persistence**: Data persists in browser LocalStorage until explicitly cleared
 
 
-### Data Structure Mapping Displayed
-- **Column 0**: Rnk (Rank)
-- **Column 1**: Group
-- **Column 2**: Last Name
-- **Column 3**: First Name
-- **Column 4**: Rating (previous)
-- **Column 5**: New Rating (caculated)
-- **Column 6-12**: player data only displayed in admin mode
-- **Column 13-44**: Round results (columns 1-31 in the display grid)
-
 ### Data Structure Mapping For File i/o
 - **Column 0**: Group
 - **Column 1**: Last Name
@@ -47,11 +37,11 @@ A web-based application for managing and displaying Bughouse Chess ladder statis
 
 ### Grid Display (User Mode) 
 - **Grid display**:with vertical lines and zebra coloring
-- **Column 0**: Group
-- **Column 1**: Last Name
-- **Column 2**: First Name
-- **Column 3**: previous Rating
-- **Column 4**: Rank (Rnk)
+- **Column 0**: Rank (Rnk)
+- **Column 1**: Group
+- **Column 2**: Last Name
+- **Column 3**: First Name
+- **Column 4**: previous Rating
 - **Column 5**: New Rating (caculated)
 - **Round Columns (1-31)**: Game results from columns 13-44 of import file. Should be displayed as numeric values, not arrows.  New values can be entered as game results 
 

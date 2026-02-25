@@ -295,7 +295,7 @@ export function long2string(game: number): string {
   resultParts.push(tempGame % 128);
 
   // VB6 Line: 122-124 - Clean up empty parts
-  let finalResult = resultParts.join('').replace(/ /g, '').replace(':0', '');
+  const finalResult = resultParts.join('').replace(/ /g, '').replace(':0', '');
   return finalResult;
 }
 
@@ -350,7 +350,7 @@ export let hashIndex: number[] = [];
 export function dataHash(skey: string, sval: string, hashMethod: number): string {
   const b = new TextEncoder().encode(skey);
   let lKeyVal = b[0];
-  let h1 = b[0] + 1;
+  const h1 = b[0] + 1;
 
   // VB6 Line: 339-343 - Build hash value from digits
   for (let i = 1; i < b.length; i++) {
