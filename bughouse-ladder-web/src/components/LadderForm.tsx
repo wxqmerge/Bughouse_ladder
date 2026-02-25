@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
+import { Settings as SettingsIcon } from 'lucide-react';
 import '../css/index.css';
 
-export default function LadderForm() {
+interface LadderFormProps {
+  setShowSettings?: (show: boolean) => void;
+}
+
+export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -276,9 +281,40 @@ export default function LadderForm() {
         background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)',
         color: 'white',
         padding: '1rem 2rem',
-        marginBottom: '1rem'
+        marginBottom: '1rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        <h1>Bughouse Chess Ladder <span style={{ marginLeft: 'auto', fontSize: '0.875rem' }}>v1.0.0</span></h1>
+        <div>
+          <h1>Bughouse Chess Ladder v1.0.0</h1>
+        </div>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.7)' }}>Total Players</span>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>{players.length}</div>
+          </div>
+          {setShowSettings && (
+            <button
+              onClick={() => setShowSettings(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem'
+              }}
+            >
+              <SettingsIcon size={18} />
+              Settings
+            </button>
+          )}
+        </div>
       </header>
 
       <div style={{

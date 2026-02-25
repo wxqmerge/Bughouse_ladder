@@ -8,7 +8,7 @@ function App() {
 
   return (
     <>
-      <LadderForm />
+      <LadderForm setShowSettings={setShowSettings} />
       {showSettings && <Settings onClose={() => setShowSettings(false)} />}
     </>
   );
