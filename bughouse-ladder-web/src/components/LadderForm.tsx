@@ -565,6 +565,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
                                 }}
                               >
+                                {field === 'rank' && player.rank}
                                 {field === 'group' && player.group}
                                 {field === 'lastName' && player.lastName}
                                 {field === 'firstName' && player.firstName}
@@ -585,7 +586,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                             const value = e.target.textContent;
                             const newAllGameResults = allGameResults.map((r, i) => i === player.rank - 1 ? [...gameResults] : r);
                             newAllGameResults[player.rank - 1][gCol] = value;
-                            player.rank - 1;
                             localStorage.setItem('ladder_game_results', JSON.stringify(newAllGameResults));
                             setPlayers(prevPlayers => {
                               const updatedPlayers = [...prevPlayers];
