@@ -10,6 +10,7 @@ interface LadderFormProps {
 export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // VB6 Line: 894 - Initialize with sample data
@@ -262,10 +263,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     alert('Players saved as players.txt');
   };
 
-  const toggleWide = () => {
-    setIsWide(!isWide);
-  };
-
   if (!players || players.length === 0) {
     return (
       <div style={{ padding: '2rem', color: '#64748b' }}>
@@ -377,16 +374,16 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
         <button
           style={{
-            background: 'white',
-            color: 'black',
+            background: isAdmin ? '#ef4444' : 'white',
+            color: isAdmin ? 'white' : 'black',
             border: '1px solid #cbd5e1',
             padding: '0.5rem 1rem',
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={toggleWide}
+          onClick={() => setIsAdmin(!isAdmin)}
         >
-          {isWide ? 'Narrow' : 'Wide'}
+          {isAdmin ? 'Exit Admin' : 'Admin Mode'}
         </button>
       </div>
 
@@ -497,34 +494,86 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                 <tr key={player.rank} style={{
                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
                 }}>
-                      {Object.keys(player).filter((_, i) => i < 6).map((field, col) => (
-                      <td key={`${row}-${col}`} style={{
-                        padding: '0.5rem 0.75rem',
-                        borderBottom: '1px solid #e2e8f0',
-                        verticalAlign: 'middle',
-                        borderRight: "1px solid #e2e8f0",
-                        backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
-                      }}>
-                        {field === 'rank' && player.rank}
-                        {field === 'group' && player.group}
-                        {field === 'lastName' && player.lastName}
-                        {field === 'firstName' && player.firstName}
-                        {field === 'rating' && player.rating > 0 ? player.rating : '-'}
-                        {field === 'nRating' && player.nRating > 0 ? player.nRating : '-'}
+                            {Object.keys(player).filter((_, i) => i < 6).map((field, col) => {
+                            const isEditable = isAdmin && field !== 'rank';
+                            return (
+                              <td
+                                key={`${row}-${col}`}
+                                contentEditable={isEditable}
+                                suppressContentEditableWarning={true}
+                                onBlur={(e) => {
+                                  if (isEditable && e.target.textContent) {
+                                    const value = e.target.textContent;
+                                    setPlayers(prevPlayers => {
+                                      const updatedPlayers = [...prevPlayers];
+                                      const index = player.rank - 1;
+                                      if (updatedPlayers[index]) {
+                                        switch (field) {
+                                          case 'group': updatedPlayers[index].group = value; break;
+                                          case 'lastName': updatedPlayers[index].lastName = value; break;
+                                          case 'firstName': updatedPlayers[index].firstName = value; break;
+                                          case 'rating': updatedPlayers[index].rating = parseInt(value) || 0; break;
+                                          case 'nRating': updatedPlayers[index].nRating = parseInt(value) || 0; break;
+                                        }
+                                      }
+                                      return updatedPlayers;
+                                    });
+                                    localStorage.setItem('ladder_players', JSON.stringify(players.map((p, i) => i === player.rank - 1 ? ({ ...p, [field]: field === 'rating' || field === 'nRating' ? parseInt(e.target.textContent) : e.target.textContent } as any) : p)));
+                                  }
+                                }}
+                                style={{
+                                  padding: '0.5rem 0.75rem',
+                                  borderBottom: '1px solid #e2e8f0',
+                                  verticalAlign: 'middle',
+                                  borderRight: "1px solid #e2e8f0",
+                                  backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
+                                }}
+                              >
+                                {field === 'rank' && player.rank}
+                                {field === 'group' && player.group}
+                                {field === 'lastName' && player.lastName}
+                                {field === 'firstName' && player.firstName}
+                                {field === 'rating' && player.rating > 0 ? player.rating : '-'}
+                                {field === 'nRating' && player.nRating > 0 ? player.nRating : '-'}
+                              </td>
+                            );
+                          })}
+                  {gameResults.map((result, gCol) => {
+                    const isEditable = isAdmin;
+                    return (
+                      <td
+                        key={`game-${row}-${gCol}`}
+                        contentEditable={isEditable}
+                        suppressContentEditableWarning={true}
+                        onBlur={(e) => {
+                          if (isEditable && e.target.textContent) {
+                            const value = e.target.textContent;
+                            setPlayers(prevPlayers => {
+                              const updatedPlayers = [...prevPlayers];
+                              const index = player.rank - 1;
+                              if (updatedPlayers[index]) {
+                                const newResults = [...gameResults];
+                                newResults[gCol] = value;
+                                localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults.map((r, i) => i === player.rank - 1 ? newResults : r)));
+                                updatedPlayers[index] = { ...updatedPlayers[index], games: gameResults.filter(r => r !== null).length + 1 };
+                              }
+                              return updatedPlayers;
+                            });
+                          }
+                        }}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          borderBottom: '1px solid #e2e8f0',
+                          verticalAlign: 'middle',
+                          borderRight: "1px solid #e2e8f0",
+                          backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {result ? result : ''}
                       </td>
-                    ))}
-                   {gameResults.map((result, gCol) => (
-                    <td key={`game-${row}-${gCol}`} style={{
-                      padding: '0.5rem 0.75rem',
-                      borderBottom: '1px solid #e2e8f0',
-                      verticalAlign: 'middle',
-                      borderRight: "1px solid #e2e8f0",
-                      backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
-                      fontSize: '0.75rem'
-                    }}>
-                      {result ? result : ''}
-                    </td>
-                  ))}
+                    );
+                  })}
                   {Array.from({ length: Math.max(0, 20 - gameResults.length) }).map((_, emptyCol) => (
                     <td key={`empty-${row}-${emptyCol}`} style={{
                       padding: '0.5rem 0.75rem',
