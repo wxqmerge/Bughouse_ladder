@@ -11,6 +11,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating'>('rank');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // VB6 Line: 894 - Initialize with sample data
@@ -219,9 +220,44 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         }
 
         if (loadedPlayers.length > 0) {
-          loadedPlayers.sort((a, b) => a.rank - b.rank);
+          const numRounds = 31;
+          localStorage.clear();
+
+          if (sortBy === 'rank') {
+            loadedPlayers.sort((a, b) => a.rank - b.rank);
+          } else if (sortBy === 'nRating') {
+            loadedPlayers.sort((a, b) => {
+              const ratingA = a.nRating || 0;
+              const ratingB = b.nRating || 0;
+              if (ratingA !== ratingB) {
+                return ratingB - ratingA;
+              }
+              return a.rank - b.rank;
+            });
+          } else if (sortBy === 'rating') {
+            loadedPlayers.sort((a, b) => {
+              const ratingA = a.rating || 0;
+              const ratingB = b.rating || 0;
+              if (ratingA !== ratingB) {
+                return ratingB - ratingA;
+              }
+              return a.rank - b.rank;
+            });
+          }
+
+          const sortedGameResults: (string | null)[][] = [];
+          sortedGameResults.length = loadedPlayers.length;
+
+          loadedPlayers.forEach(player => {
+            const gameResults: (string | null)[] = [];
+            for (let g = 0; g < numRounds; g++) {
+              gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+            }
+            sortedGameResults[loadedPlayers.indexOf(player)] = gameResults;
+          });
+
          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-         localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
+         localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
          setPlayers(loadedPlayers);
          alert(`Successfully loaded ${loadedPlayers.length} players from ${fileToLoad.name}`);
        } else {
@@ -273,6 +309,51 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     setPlayers(playersCopy);
     localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
     alert('Ratings recalculated successfully!');
+  };
+
+  const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating') => {
+    setSortBy(sortMethod);
+    const playersCopy = [...players];
+    const gameResultsStr = localStorage.getItem('ladder_game_results');
+    const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
+    const numRounds = 31;
+
+    if (sortBy === 'rank') {
+      playersCopy.sort((a, b) => a.rank - b.rank);
+    } else if (sortBy === 'nRating') {
+      playersCopy.sort((a, b) => {
+        const ratingA = a.nRating || 0;
+        const ratingB = b.nRating || 0;
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA;
+        }
+        return a.rank - b.rank;
+      });
+    } else if (sortBy === 'rating') {
+      playersCopy.sort((a, b) => {
+        const ratingA = a.rating || 0;
+        const ratingB = b.rating || 0;
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA;
+        }
+        return a.rank - b.rank;
+      });
+    }
+
+    const sortedGameResults: (string | null)[][] = [];
+    sortedGameResults.length = playersCopy.length;
+
+    playersCopy.forEach(player => {
+      const gameResults: (string | null)[] = [];
+      for (let g = 0; g < numRounds; g++) {
+        gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+      }
+      sortedGameResults[playersCopy.indexOf(player)] = gameResults;
+    });
+
+    setPlayers(playersCopy);
+    localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
+    localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
   };
 
   const exportToNewFile = () => {
@@ -376,6 +457,57 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               Settings
             </button>
           )}
+          <button
+            onClick={() => handleSort('rank')}
+            style={{
+              background: sortBy === 'rank' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}
+          >
+            Sort by Rank
+          </button>
+          <button
+            onClick={() => handleSort('nRating')}
+            style={{
+              background: sortBy === 'nRating' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}
+          >
+            Sort by New Rating
+          </button>
+          <button
+            onClick={() => handleSort('rating')}
+            style={{
+              background: sortBy === 'rating' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}
+          >
+            Sort by Previous Rating
+          </button>
         </div>
       </header>
 
@@ -383,7 +515,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         display: 'flex',
         gap: '1rem',
         marginBottom: '1rem',
-        padding: '1rem'
+        padding: '1rem',
+        flexWrap: 'wrap'
       }}>
         <label
           style={{
