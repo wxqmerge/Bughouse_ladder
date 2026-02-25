@@ -565,12 +565,11 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent',
                                 }}
                               >
-                                {field === 'rank' && player.rank}
                                 {field === 'group' && player.group}
                                 {field === 'lastName' && player.lastName}
                                 {field === 'firstName' && player.firstName}
-                                {field === 'rating' && player.rating > 0 ? player.rating : '-'}
-                                {field === 'nRating' && player.nRating > 0 ? player.nRating : '-'}
+                                {field === 'rating' && player.rating > 0 ? player.rating : ''}
+                                {field === 'nRating' && player.nRating > 0 ? player.nRating : ''}
                               </td>
                             );
                           })}
