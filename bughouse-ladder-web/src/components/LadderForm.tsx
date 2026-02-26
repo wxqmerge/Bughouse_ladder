@@ -11,7 +11,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating' | 'byName'>('rank');
+  const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating' | 'byName' | null>(null);
+  const [hasData, setHasData] = useState(false);
   const [projectName, setProjectName] = useState<string>('Bughouse Chess Ladder');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -135,6 +136,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         if (Array.isArray(parsed) && parsed.length > 0) {
           console.log('Loading players from LocalStorage:', parsed);
           setPlayers(parsed);
+          setHasData(true);
+          setSortBy(null);
           return;
         }
       } catch (err) {
@@ -143,6 +146,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     }
 
     setPlayers(samplePlayers);
+    setHasData(false);
+    setSortBy(null);
   }, []);
 
   const loadPlayers = (file?: File) => {
@@ -261,11 +266,13 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             sortedGameResults[playerIndex] = gameResults;
           });
 
-         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-         localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
-         setPlayers(loadedPlayers);
-       } else {
-       }
+          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+          localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
+          setPlayers(loadedPlayers);
+          setHasData(true);
+          setSortBy(null);
+        } else {
+        }
     };
     
     reader.readAsText(fileToLoad);
@@ -338,7 +345,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     return 0;
   };
 
-  const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating' | 'byName') => {
+   const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating' | 'byName') => {
+    setSortBy(sortMethod);
+    setHasData(true);
+    
     const numRounds = 31;
     const gameResultsStr = localStorage.getItem('ladder_game_results');
     const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
@@ -388,7 +398,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     setPlayers(sortedPlayers);
     localStorage.setItem('ladder_players', JSON.stringify(sortedPlayers));
     localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
-  };
+   };
 
   const exportToNewFile = () => {
     if (players.length === 0) {
@@ -486,74 +496,86 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               Settings
             </button>
           )}
-          <button
-            onClick={() => handleSort('rank')}
-            style={{
-              background: sortBy === 'rank' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            Sort by Rank
-          </button>
-          <button
-            onClick={() => handleSort('byName')}
-            style={{
-              background: sortBy === 'byName' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            Sort by Name
-          </button>
-          <button
-            onClick={() => handleSort('nRating')}
-            style={{
-              background: sortBy === 'nRating' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            Sort by New Rating
-          </button>
-          <button
-            onClick={() => handleSort('rating')}
-            style={{
-              background: sortBy === 'rating' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem'
-            }}
-          >
-            Sort by Previous Rating
-          </button>
+           <button
+             onClick={() => handleSort('rank')}
+             style={{
+               background: (sortBy === 'rank' && hasData) ? '#8b5cf6' : '#6b7280',
+               color: 'white',
+               border: '1px solid #4b5563',
+               padding: '0.5rem 1rem',
+               borderRadius: '9999px',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem',
+               outline: '2px solid transparent',
+               outlineOffset: '2px',
+               fontWeight: sortBy === 'rank' && hasData ? '600' : '400'
+             }}
+           >
+             Sort by Rank
+           </button>
+           <button
+             onClick={() => handleSort('byName')}
+             style={{
+               background: (sortBy === 'byName' && hasData) ? '#8b5cf6' : '#6b7280',
+               color: 'white',
+               border: '1px solid #4b5563',
+               padding: '0.5rem 1rem',
+               borderRadius: '9999px',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem',
+               outline: '2px solid transparent',
+               outlineOffset: '2px',
+               fontWeight: sortBy === 'byName' && hasData ? '600' : '400'
+             }}
+           >
+             Sort by Name
+           </button>
+           <button
+             onClick={() => handleSort('nRating')}
+             style={{
+               background: (sortBy === 'nRating' && hasData) ? '#8b5cf6' : '#6b7280',
+               color: 'white',
+               border: '1px solid #4b5563',
+               padding: '0.5rem 1rem',
+               borderRadius: '9999px',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem',
+               outline: '2px solid transparent',
+               outlineOffset: '2px',
+               fontWeight: sortBy === 'nRating' && hasData ? '600' : '400'
+             }}
+           >
+             Sort by New Rating
+           </button>
+           <button
+             onClick={() => handleSort('rating')}
+             style={{
+               background: (sortBy === 'rating' && hasData) ? '#8b5cf6' : '#6b7280',
+               color: 'white',
+               border: '1px solid #4b5563',
+               padding: '0.5rem 1rem',
+               borderRadius: '9999px',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem',
+               outline: '2px solid transparent',
+               outlineOffset: '2px',
+               fontWeight: sortBy === 'rating' && hasData ? '600' : '400'
+             }}
+           >
+             Sort by Previous Rating
+           </button>
         </div>
       </header>
 
