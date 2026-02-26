@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Play as PlayIcon } from 'lucide-react';
 import '../css/index.css';
 
 interface LadderFormProps {
@@ -441,8 +441,127 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
       const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
 
       localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
-    } catch (error) {
+    } catch (err) {
     }
+  };
+
+  const runTests = () => {
+    console.log('Starting tests...');
+
+    const testFileInput = document.createElement('input');
+    testFileInput.type = 'file';
+    testFileInput.accept = '.xls,.tab,.txt';
+
+    testFileInput.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) {
+        console.error('No file selected');
+        return;
+      }
+
+      console.log(`Reading file: ${file.name}`);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        console.log('File content loaded, length:', text.length);
+
+        const lines = text.split('\n');
+        let loadedPlayers: PlayerData[] = [];
+        const allGameResults: (string | null)[][] = [];
+        const numRounds = 31;
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+
+          if (!line) continue;
+
+          if (line.startsWith('Group')) continue;
+
+          const parts = line.split('\t');
+          const lastChar = parts[parts.length - 1];
+          const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
+
+          const cols: (string | null)[] = [];
+          for (let j = 0; j < parts.length && j < hasTail; j++) {
+            let value: string | null = parts[j].trim() || null;
+            if (j === parts.length - 1 && value === '' && lastChar === '') {
+              const prevChar = parts[Math.max(0, parts.length - 2)];
+              if (prevChar.match(/^\d+$/)) {
+                value = prevChar.slice(0, -1).trim() || null;
+              }
+            }
+
+            cols.push(value);
+          }
+
+          const player: PlayerData = {
+            rank: parseInt(cols[4] || '0'),
+            group: cols[0] || '',
+            lastName: cols[1] || '',
+            firstName: cols[2] || '',
+            rating: parseInt(cols[3] || '-1'),
+            nRating: parseInt(cols[5] || '0'),
+            grade: cols[6] || '',
+            games: parseInt(cols[7] || '0'),
+            attendance: cols[8] || '',
+            info: cols[9] || '',
+            phone: cols[10] || '',
+            school: cols[11] || '',
+            room: cols[12] || '',
+          };
+
+          loadedPlayers.push(player);
+
+          const gameResults: (string | null)[] = [];
+          for (let g = 0; g < numRounds; g++) {
+            const resultVal = cols[13 + g];
+            gameResults.push(resultVal && resultVal !== '' ? resultVal : null);
+          }
+          allGameResults.push(gameResults);
+        }
+
+        if (loadedPlayers.length > 0) {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const filename = `Test_Results_${timestamp}.txt`;
+
+          const headerLine = 'Group\tLast Name\tFirst Name\tRating\tRnk\tN Rate\tGr\tX\tPhone\tInfo\tSchool\tRoom\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20\t21\t22\t23\t24\t25\t26\t27\t28\t29\t30\t31\Version 1.21';
+
+          let output = headerLine + '\n';
+          for (let i = 0; i < loadedPlayers.length; i++) {
+            const player = loadedPlayers[i];
+            const gameResults = allGameResults[i] || new Array(20).fill('');
+
+            output += `${player.group}\t${player.lastName}\t${player.firstName}\t${player.rating}\t${player.rank}\t${player.nRating}\t${player.grade}\t${player.games}\t${player.attendance}\t${player.phone}\t${player.info}\t${player.school}\t${player.room}\t`;
+            output += gameResults.map(r => r || '').join('\t');
+            output += '\n';
+          }
+
+          console.log(`Test passed: Successfully imported ${loadedPlayers.length} players and exported ${filename}`);
+        } else {
+          console.error('Test failed: No players loaded');
+        }
+
+        setPlayers(loadedPlayers);
+        setHasData(true);
+        localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+
+        const sortedGameResults: (string | null)[][] = [];
+        loadedPlayers.forEach(player => {
+          const gameResults: (string | null)[] = [];
+          for (let g = 0; g < numRounds; g++) {
+            gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+          }
+          const playerIndex = loadedPlayers.indexOf(player);
+          sortedGameResults[playerIndex] = gameResults;
+        });
+
+        localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
+      };
+
+      reader.readAsText(file);
+    };
+
+    testFileInput.click();
   };
 
   if (!players || players.length === 0) {
@@ -675,6 +794,24 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           onClick={() => setIsAdmin(!isAdmin)}
         >
           {isAdmin ? 'Exit Admin' : 'Admin Mode'}
+        </button>
+            <button
+          onClick={runTests}
+          style={{
+            background: '#3b82f6',
+            color: 'white',
+            border: '1px solid #1d4ed8',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem'
+          }}
+        >
+          <PlayIcon size={18} />
+          Run Tests
         </button>
       </div>
 
