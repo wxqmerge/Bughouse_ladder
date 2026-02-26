@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
 import { Settings as SettingsIcon } from 'lucide-react';
 import '../css/index.css';
-import type { ReactNode } from 'react';
 
 interface LadderFormProps {
   setShowSettings?: (show: boolean) => void;
@@ -662,15 +661,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '1rem',
         marginBottom: '1rem',
-        padding: '1rem',
+         padding: '1rem',
         backgroundColor: '#f8fafc',
         borderRadius: '0.5rem'
-      }}>
-        <div>
-          <span style={{ fontSize: '0.875rem', color: '#64748b' }}>Total Players</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#2563eb' }}>{players.length}</div>
-        </div>
-      </div>
+      }} />
 
       <div style={{ overflow: 'auto', border: '1px solid #cbd5e1', borderRadius: '0.5rem' }}>
         <table style={{
