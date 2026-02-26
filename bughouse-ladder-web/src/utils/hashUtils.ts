@@ -103,7 +103,7 @@ export function getLadderName(): string {
  * VB6 Line: 138-154 - Player array to string conversion
  * Translates player and score arrays to hash string format
  */
-export function entry2string(playersList: number[], scoreList: number[], quickEntryVal: number): string {
+export function entry2string(playersList: number[], scoreList: number[]): string {
   // VB6 Line: 140-145 - Swap to ensure correct order
   if (playersList[0] > playersList[1]) {
     const temp = playersList[0];
@@ -140,7 +140,7 @@ export function parseEntry(
   myText: string,
   playersList: number[],
   scoreList: number[],
-  quickEntryVal: number
+  _quickEntryVal: number
 ): number {
   // VB6 Line: 167-171 - Reset arrays
   playersList[0] = 0;
@@ -158,7 +158,6 @@ export function parseEntry(
   let numOrChar = 1; // 0 = number, 1 = char
   let entryString = '';
   let errorNum = 0;
-  let currentEntry = 0;
 
   for (let i = 1; i <= strlen; i++) {
     const mychar = myText.substring(i - 1, i);
@@ -198,7 +197,6 @@ export function parseEntry(
         }
       } else if (numOrChar === 1) {
         results[entry] = entryString;
-        currentEntry = entry;
       }
 
       if (numOrChar !== 1) {
@@ -277,10 +275,10 @@ export function long2string(game: number): string {
   let tempGame = game;
 
   // VB6 Line: 111-121 - Extract structured data
-  resultParts.push(tempGame % 128);
+  resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
   resultParts.push(':');
-  resultParts.push(tempGame % 128);
+  resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
   resultParts.push(RESULT_STRING.charAt(tempGame % 4));
   tempGame = Math.floor(tempGame / 4);
@@ -289,10 +287,10 @@ export function long2string(game: number): string {
     resultParts.push(nextChar);
   }
   tempGame = Math.floor(tempGame / 4);
-  resultParts.push(tempGame % 128);
+  resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
   resultParts.push(':');
-  resultParts.push(tempGame % 128);
+  resultParts.push((tempGame % 128).toString());
 
   // VB6 Line: 122-124 - Clean up empty parts
   const finalResult = resultParts.join('').replace(/ /g, '').replace(':0', '');
@@ -321,7 +319,6 @@ export function resetPlacement(): void {
  * Sets up pseudorandom array for hash generation
  */
 export function hashInitialize(): void {
-  const m_lHashTableSize = 2048;
   const rand8: number[] = Array.from({ length: 256 }, (_, i) => i);
   let k = 7;
 
@@ -350,7 +347,6 @@ export let hashIndex: number[] = [];
 export function dataHash(skey: string, sval: string, hashMethod: number): string {
   const b = new TextEncoder().encode(skey);
   let lKeyVal = b[0];
-  const h1 = b[0] + 1;
 
   // VB6 Line: 339-343 - Build hash value from digits
   for (let i = 1; i < b.length; i++) {

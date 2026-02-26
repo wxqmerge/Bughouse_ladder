@@ -320,9 +320,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   };
 
   const Chess_Compare = (Row1: PlayerData, Row2: PlayerData, sortType: 'last' | 'first', _col_sel: number) => {
-    const first_name_field = 2;
-    const last_name_field = 1;
-
     const result1 = sortType === 'last' ? Row1.lastName : Row1.firstName;
     const result2 = sortType === 'last' ? Row2.lastName : Row2.firstName;
 
