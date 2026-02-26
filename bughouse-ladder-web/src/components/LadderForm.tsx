@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
 import { Settings as SettingsIcon } from 'lucide-react';
 import '../css/index.css';
+import type { ReactNode } from 'react';
 
 interface LadderFormProps {
   setShowSettings?: (show: boolean) => void;
@@ -11,7 +12,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating'>('rank');
+  const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating' | 'byName'>('rank');
+  const [projectName, setProjectName] = useState<string>('Bughouse Chess Ladder');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // VB6 Line: 894 - Initialize with sample data
@@ -146,11 +148,13 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
   const loadPlayers = (file?: File) => {
     const fileToLoad = file || fileInputRef.current?.files?.[0];
-    
+
     if (!fileToLoad) {
-      alert('Please select a text file to load.');
       return;
     }
+
+    const projectName = fileToLoad.name.replace(/\.[^.]+$/, '');
+    setProjectName(projectName);
 
         const reader = new FileReader();
     reader.onload = (e) => {
@@ -219,7 +223,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           loadedPlayers = loadedPlayers.slice(0, 200);
         }
 
-        if (loadedPlayers.length > 0) {
+         if (loadedPlayers.length > 0) {
           const numRounds = 31;
           localStorage.clear();
 
@@ -243,25 +247,25 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               }
               return a.rank - b.rank;
             });
+          } else if (sortBy === 'byName') {
+            loadedPlayers.sort((a, b) => Chess_Compare(a, b, 'last', 0));
           }
 
           const sortedGameResults: (string | null)[][] = [];
-          sortedGameResults.length = loadedPlayers.length;
 
           loadedPlayers.forEach(player => {
             const gameResults: (string | null)[] = [];
             for (let g = 0; g < numRounds; g++) {
               gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
             }
-            sortedGameResults[loadedPlayers.indexOf(player)] = gameResults;
+            const playerIndex = loadedPlayers.indexOf(player);
+            sortedGameResults[playerIndex] = gameResults;
           });
 
          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
          localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
          setPlayers(loadedPlayers);
-         alert(`Successfully loaded ${loadedPlayers.length} players from ${fileToLoad.name}`);
        } else {
-         alert('No valid player data found in the file.');
        }
     };
     
@@ -286,7 +290,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           if (result && result.match(/[WL]/i)) {
             const opponent = playersCopy[index + 1];
             if (opponent && opponent.rating > 0) {
-              const probability = formula(player.rating, opponent.rating);
               if (result.toUpperCase() === 'W') {
                 totalScore += 1;
               } else if (result.toUpperCase() === 'L') {
@@ -308,15 +311,42 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
     setPlayers(playersCopy);
     localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
-    alert('Ratings recalculated successfully!');
   };
 
-  const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating') => {
+  const Chess_Compare = (Row1: PlayerData, Row2: PlayerData, sortType: 'last' | 'first', _col_sel: number) => {
+    const first_name_field = 2;
+    const last_name_field = 1;
+
+    const result1 = sortType === 'last' ? Row1.lastName : Row1.firstName;
+    const result2 = sortType === 'last' ? Row2.lastName : Row2.firstName;
+
+    if (result1 === '' || result1 === null) {
+      return 1;
+    }
+
+    if (result2 === '' || result2 === null) {
+      return -1;
+    }
+
+    if (result1 > result2) {
+      return 1;
+    }
+
+    if (result1 < result2) {
+      return -1;
+    }
+
+    return 0;
+  };
+
+  const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating' | 'byName') => {
     setSortBy(sortMethod);
     const playersCopy = [...players];
     const gameResultsStr = localStorage.getItem('ladder_game_results');
     const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
     const numRounds = 31;
+
+    const sortBy = sortMethod;
 
     if (sortBy === 'rank') {
       playersCopy.sort((a, b) => a.rank - b.rank);
@@ -338,6 +368,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         }
         return a.rank - b.rank;
       });
+    } else if (sortBy === 'byName') {
+      playersCopy.sort((a, b) => Chess_Compare(a, b, 'last', 1));
     }
 
     const sortedGameResults: (string | null)[][] = [];
@@ -358,7 +390,6 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
   const exportToNewFile = () => {
     if (players.length === 0) {
-      alert('No players to export.');
       return;
     }
 
@@ -387,12 +418,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert(`Exported as ${filename}`);
   };
 
   const saveLocalStorage = () => {
     if (players.length === 0) {
-      alert('No players to save.');
       return;
     }
 
@@ -403,16 +432,14 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
       const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
 
       localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
-      alert('Saved to browser storage');
     } catch (error) {
-      alert('Error saving to storage');
     }
   };
 
   if (!players || players.length === 0) {
     return (
       <div style={{ padding: '2rem', color: '#64748b' }}>
-        <h1>Bughouse Chess Ladder - Web Version</h1>
+        <h1>{projectName}</h1>
         <p>Loading sample data...</p>
       </div>
     );
@@ -430,7 +457,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         alignItems: 'center'
       }}>
         <div>
-          <h1>Bughouse Chess Ladder v1.0.0</h1>
+          <h1>{projectName} v1.0.0</h1>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
           <div>
@@ -473,6 +500,23 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             }}
           >
             Sort by Rank
+          </button>
+          <button
+            onClick={() => handleSort('byName')}
+            style={{
+              background: sortBy === 'byName' ? '#8b5cf6' : 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}
+          >
+            Sort by Name
           </button>
           <button
             onClick={() => handleSort('nRating')}
@@ -593,7 +637,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             borderRadius: '0.25rem',
             cursor: 'pointer'
           }}
-          onClick={() => alert('Zoom level saved')}
+          onClick={() => setIsWide(!isWide)}
         >
           Zoom: {isWide ? '140%' : '100%'}
         </button>
