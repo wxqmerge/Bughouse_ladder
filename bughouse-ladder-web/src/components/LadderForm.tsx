@@ -339,51 +339,54 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   };
 
   const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating' | 'byName') => {
-    setSortBy(sortMethod);
-    const playersCopy = [...players];
+    const numRounds = 31;
     const gameResultsStr = localStorage.getItem('ladder_game_results');
     const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
-    const numRounds = 31;
 
-    const sortBy = sortMethod;
+    const playersWithResults = players.map((player, index) => ({
+      player,
+      gameResults: allGameResults[index] || new Array(numRounds).fill(null)
+    }));
 
-    if (sortBy === 'rank') {
-      playersCopy.sort((a, b) => a.rank - b.rank);
-    } else if (sortBy === 'nRating') {
-      playersCopy.sort((a, b) => {
-        const ratingA = a.nRating || 0;
-        const ratingB = b.nRating || 0;
+    playersWithResults.sort((a, b) => {
+      if (sortMethod === 'rank') {
+        return a.player.rank - b.player.rank;
+      } else if (sortMethod === 'nRating') {
+        const ratingA = a.player.nRating || 0;
+        const ratingB = b.player.nRating || 0;
         if (ratingA !== ratingB) {
           return ratingB - ratingA;
         }
-        return a.rank - b.rank;
-      });
-    } else if (sortBy === 'rating') {
-      playersCopy.sort((a, b) => {
-        const ratingA = a.rating || 0;
-        const ratingB = b.rating || 0;
+        return a.player.rank - b.player.rank;
+      } else if (sortMethod === 'rating') {
+        const ratingA = a.player.rating || 0;
+        const ratingB = b.player.rating || 0;
         if (ratingA !== ratingB) {
           return ratingB - ratingA;
         }
-        return a.rank - b.rank;
-      });
-    } else if (sortBy === 'byName') {
-      playersCopy.sort((a, b) => Chess_Compare(a, b, 'last', 1));
-    }
-
-    const sortedGameResults: (string | null)[][] = [];
-    sortedGameResults.length = playersCopy.length;
-
-    playersCopy.forEach(player => {
-      const gameResults: (string | null)[] = [];
-      for (let g = 0; g < numRounds; g++) {
-        gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+        return a.player.rank - b.player.rank;
+      } else if (sortMethod === 'byName') {
+        const resultA = a.player.lastName || a.player.firstName;
+        const resultB = b.player.lastName || b.player.firstName;
+        if (resultA && !resultB) return 1;
+        if (!resultA && resultB) return -1;
+        if (!resultA && !resultB) return 0;
+        if (resultA < resultB) return -1;
+        if (resultA > resultB) return 1;
+        return 0;
       }
-      sortedGameResults[playersCopy.indexOf(player)] = gameResults;
+      return 0;
     });
 
-    setPlayers(playersCopy);
-    localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
+    const sortedPlayers = playersWithResults.map((item, index) => {
+      item.player.rank = index + 1;
+      return item.player;
+    });
+
+    const sortedGameResults = playersWithResults.map(item => item.gameResults);
+
+    setPlayers(sortedPlayers);
+    localStorage.setItem('ladder_players', JSON.stringify(sortedPlayers));
     localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
   };
 
