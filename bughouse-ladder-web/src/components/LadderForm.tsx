@@ -747,17 +747,17 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                 </th>
               ))}
             </tr>
-          </thead>
-          <tbody>
-            {players.map((player, row) => {
-              const gameResultsStr = localStorage.getItem('ladder_game_results');
-              const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
-              const gameResults = allGameResults[player.rank - 1] || new Array(20).fill('');
+           </thead>
+           <tbody>
+             {players.map((player, row) => {
+               const gameResultsStr = localStorage.getItem('ladder_game_results');
+               const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
+               const gameResults = allGameResults[row] || new Array(20).fill('');
 
-              return (
-                <tr key={player.rank} style={{
-                  backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
-                }}>
+               return (
+                 <tr key={row} style={{
+                   backgroundColor: row % 2 >= 1 ? '#f8fafc' : 'transparent'
+                 }}>
                             {Object.keys(player).filter((_, i) => i < 6).map((field, col) => {
                             const isEditable = isAdmin && field !== 'rank';
                             return (
