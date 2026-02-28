@@ -15,6 +15,14 @@ describe('LadderForm component', () => {
     expect(loadButton).toBeInTheDocument()
   })
 
+  it('should have a Run tests button that can be clicked', () => {
+    render(<LadderForm />)
+    const runButton = screen.getByText('Run tests')
+    expect(runButton).toBeInTheDocument()
+    // clicking should not throw since handler simply calls exportPlayers
+    fireEvent.click(runButton)
+  })
+
   it('should handle file input change', () => {
     render(<LadderForm />)
     const fileInput = screen.getByLabelText('Load') as HTMLInputElement
