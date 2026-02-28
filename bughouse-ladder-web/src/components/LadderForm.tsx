@@ -439,7 +439,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const runTests = () => {
     console.log('runTests invoked, delegating to exportPlayers');
       //fileInput.click();
-      loadPlayers( );
+       const file = new File([], 'kings_cross.tab');
+      loadPlayers( file);
              console.log(`Loaded players from kings_cross.tab`);
             recalculateRatings();
             exportPlayers();
@@ -460,14 +461,14 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
     let output = headerLine + '\n';
 
-    players.forEach(player => {
-      const gameResults = player.gameResults || new Array(31).fill(null);
+     players.forEach(player => {
+       const gameResults = player.gameResults || new Array(31).fill(null);
 
-      output += `${player.group || ''}\t${player.lastName || ''}\t${player.firstName || ''}\t${player.rating > 0 ? player.rating : ''}\t${player.rank}\t${player.nRating > 0 ? player.nRating : ''}\t${player.grade || ''}\t${player.games || 0}\t${player.attendance || ''}\t${player.phone || ''}\t${player.info || ''}\t${player.school || ''}\t${player.room || ''}\t`;
+       output += `${player.group || ''}\t${player.lastName || ''}\t${player.firstName || ''}\t${player.rating > 0 ? player.rating : ''}\t${player.rank}\t${player.nRating > 0 ? player.nRating : ''}\t${player.grade || ''}\t${player.games || 0}\t${player.attendance || ''}\t${player.phone || ''}\t${player.info || ''}\t${player.school || ''}\t${player.room || ''}`;
 
-      output += gameResults.map(r => r || '').join('\t');
-      output += '\n';
-    });
+       output += gameResults.map(r => r || '').join('\t');
+       output += '\n';
+     });
 
     const blob = new Blob([output], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
