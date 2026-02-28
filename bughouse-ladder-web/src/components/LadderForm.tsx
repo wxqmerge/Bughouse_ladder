@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
-import { Settings as SettingsIcon, Play as PlayIcon } from 'lucide-react';
+import { Settings as SettingsIcon } from 'lucide-react';
 import '../css/index.css';
 
 interface LadderFormProps {
@@ -644,98 +644,116 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           />
         </label>
 
-           <button
-             style={{
-               background: '#2563eb',
-               color: 'white',
-               border: 'none',
-               padding: '0.5rem 1rem',
-               borderRadius: '0.25rem',
-               cursor: 'pointer',
-               display: 'inline-flex',
-               alignItems: 'center',
-               gap: '0.5rem',
-               fontSize: '0.875rem'
-             }}
-             onClick={runTests}
-           >
-             Run tests
-           </button>
-
-          <button
-            style={{
-              background: '#f59e0b',
-              color: 'white',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer'
-            }}
-            onClick={saveLocalStorage}
-          >
-            Save
-          </button>
-
-          <button
-            style={{
-              background: '#8b5cf6',
-              color: 'white',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-              cursor: 'pointer'
-            }}
-            onClick={recalculateRatings}
-          >
-            Recalculate Ratings
-          </button>
-
-        <button
-          style={{
-            background: 'white',
-            color: 'black',
-            border: '1px solid #cbd5e1',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            cursor: 'pointer'
-          }}
-          onClick={() => setIsWide(!isWide)}
-        >
-          Zoom: {isWide ? '140%' : '100%'}
-        </button>
-
-        <button
-          style={{
-            background: isAdmin ? '#ef4444' : 'white',
-            color: isAdmin ? 'white' : 'black',
-            border: '1px solid #cbd5e1',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            cursor: 'pointer'
-          }}
-          onClick={() => setIsAdmin(!isAdmin)}
-        >
-          {isAdmin ? 'Exit Admin' : 'Admin Mode'}
-        </button>
             <button
-          onClick={exportPlayers}
-          style={{
-            background: '#3b82f6',
-            color: 'white',
-            border: '1px solid #1d4ed8',
-            padding: '0.5rem 1rem',
-            borderRadius: '0.25rem',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.875rem'
-          }}
-        >
-          <PlayIcon size={18} />
-          Export
-        </button>
-      </div>
+              style={{
+                background: '#2563eb',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem'
+              }}
+              onClick={exportPlayers}
+            >
+              Export
+            </button>
+
+            <button
+              style={{
+                background: '#3b82f6',
+                color: 'white',
+                border: '1px solid #1d4ed8',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem'
+              }}
+              onClick={runTests}
+            >
+              Run Tests
+            </button>
+
+            <button
+              style={{
+                background: '#f59e0b',
+                color: 'white',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                cursor: 'pointer'
+              }}
+              onClick={saveLocalStorage}
+            >
+              Save
+            </button>
+
+             <button
+               style={{
+                 background: '#8b5cf6',
+                 color: 'white',
+                 border: 'none',
+                 padding: '0.5rem 1rem',
+                 borderRadius: '0.25rem',
+                 cursor: 'pointer'
+               }}
+               onClick={recalculateRatings}
+             >
+               Recalculate Ratings
+             </button>
+
+         <button
+           style={{
+             background: 'white',
+             color: 'black',
+             border: '1px solid #cbd5e1',
+             padding: '0.5rem 1rem',
+             borderRadius: '0.25rem',
+             cursor: 'pointer'
+           }}
+           onClick={() => setIsWide(!isWide)}
+         >
+           Zoom: {isWide ? '140%' : '100%'}
+         </button>
+
+         <button
+           style={{
+             background: isAdmin ? '#ef4444' : 'white',
+             color: isAdmin ? 'white' : 'black',
+             border: '1px solid #cbd5e1',
+             padding: '0.5rem 1rem',
+             borderRadius: '0.25rem',
+             cursor: 'pointer'
+           }}
+           onClick={() => setIsAdmin(!isAdmin)}
+         >
+           {isAdmin ? 'Exit Admin' : 'Admin Mode'}
+         </button>
+
+             <button
+               style={{
+                 background: '#3b82f6',
+                 color: 'white',
+                 border: '1px solid #1d4ed8',
+                 padding: '0.5rem 1rem',
+                 borderRadius: '0.25rem',
+                 cursor: 'pointer',
+                 display: 'inline-flex',
+                 alignItems: 'center',
+                 gap: '0.5rem',
+                 fontSize: '0.875rem'
+               }}
+               onClick={runTests}
+             >
+               Run Tests
+             </button>
+        </div>
 
       <div style={{
         display: 'grid',
