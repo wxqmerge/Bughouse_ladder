@@ -436,14 +436,14 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     }
   };
 
-   const runTests = () => {
-     console.log('runTests invoked, reading kings_cross.tab');
-     
-     const reader = new FileReader();
-     reader.onload = (e) => {
-       const text = e.target?.result as string;
-       const lines = text.split('\n');
-       let loadedPlayers: PlayerData[] = [];
+    const runTests = async () => {
+      console.log('runTests invoked, reading kings_cross.tab');
+
+      try {
+        const response = await fetch('kings_cross.tab');
+        const text = await response.text();
+        const lines = text.split('\n');
+        let loadedPlayers: PlayerData[] = [];
        const numRounds = 31;
        
        for (let i = 0; i < lines.length; i++) {
@@ -500,16 +500,16 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
          player.gameResults = gameResults;
        }
         
-       if (loadedPlayers.length > 0) {
-         setPlayers(loadedPlayers);
-         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-         recalculateRatings();
-         exportPlayers();
+        if (loadedPlayers.length > 0) {
+          setPlayers(loadedPlayers);
+          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+          recalculateRatings();
+          exportPlayers();
+        }
+       } catch (err) {
+         console.error('Error reading kings_cross.tab:', err);
        }
      };
-     
-     reader.readAsText(new File(['kings_cross.tab'], 'kings_cross.tab', { type: 'text/plain' }));
-   };
 
   const exportPlayers = () => {
     if (players.length === 0) {
