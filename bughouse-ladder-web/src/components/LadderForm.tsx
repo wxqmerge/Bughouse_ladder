@@ -179,7 +179,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
-      let loadedPlayers: PlayerData[] = [];
+        let loadedPlayers: PlayerData[] = [];
       const allGameResults: (string | null)[][] = [];
       const numRounds = 31;
       
@@ -436,11 +436,80 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     }
   };
 
-// simplified test helper now delegates to exportPlayers instead of performing custom parsing/IO
-  const runTests = () => {
-    console.log('runTests invoked, delegating to exportPlayers');
-    exportPlayers();
-  };
+   const runTests = () => {
+     console.log('runTests invoked, reading kings_cross.tab');
+     
+     const reader = new FileReader();
+     reader.onload = (e) => {
+       const text = e.target?.result as string;
+       const lines = text.split('\n');
+       let loadedPlayers: PlayerData[] = [];
+       const numRounds = 31;
+       
+       for (let i = 0; i < lines.length; i++) {
+         const line = lines[i].trim();
+         
+         if (!line) continue;
+         
+         if (line.startsWith('Group')) continue;
+         
+         const parts = line.split('\t');
+         
+         const lastChar = parts[parts.length - 1];
+         const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
+         
+         const cols: (string | null)[] = [];
+         for (let j = 0; j < parts.length && j < hasTail; j++) {
+           let value: string | null = parts[j].trim() || null;
+           if (j === parts.length - 1 && value === '' && lastChar === '') {
+             const prevChar = parts[Math.max(0, parts.length - 2)];
+             if (prevChar.match(/^\d+$/)) {
+               value = prevChar.slice(0, -1).trim() || null;
+             }
+           }
+           
+           cols.push(value);
+         }
+
+         const player: PlayerData = {
+           rank: cols[4] ? parseInt(cols[4]) : 0,
+           group: cols[0] && cols[0].trim() !== '' ? cols[0].trim() : '',
+           lastName: cols[1] !== null ? cols[1] : '',
+           firstName: cols[2] !== null ? cols[2] : '',
+           rating: cols[3] ? parseInt(String(cols[3]).trim() || '-1') : -1,
+           nRating: 0,
+           grade: cols[6] !== null ? cols[6] : 'N/A',
+           games: cols[7] !== null ? parseInt(cols[7]) : 0,
+           attendance: cols[8] !== null ? parseInt(cols[8]) : 0,
+           phone: cols[9] !== null ? cols[9] : '',
+           info: cols[10] !== null ? cols[10] : '',
+           school: cols[11] !== null ? cols[11] : '',
+           room: cols[12] !== null ? cols[12] : '',
+           gameResults: [],
+         };
+
+         if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName || player.nRating !== 0))
+         {
+           loadedPlayers.push(player);
+         }
+
+         const gameResults: (string | null)[] = [];
+         for (let g = 0; g < numRounds; g++) {
+           gameResults.push(cols[13 + g]);
+         }
+         player.gameResults = gameResults;
+       }
+        
+       if (loadedPlayers.length > 0) {
+         setPlayers(loadedPlayers);
+         localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+         recalculateRatings();
+         exportPlayers();
+       }
+     };
+     
+     reader.readAsText(new File(['kings_cross.tab'], 'kings_cross.tab', { type: 'text/plain' }));
+   };
 
   const exportPlayers = () => {
     if (players.length === 0) {
