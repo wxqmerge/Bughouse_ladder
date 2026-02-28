@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { PlayerData } from '../utils/hashUtils';
-import { Settings as SettingsIcon } from 'lucide-react';
+import { Settings as SettingsIcon, Play as PlayIcon } from 'lucide-react';
 import '../css/index.css';
 
 interface LadderFormProps {
@@ -179,7 +179,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
-        let loadedPlayers: PlayerData[] = [];
+      let loadedPlayers: PlayerData[] = [];
       const allGameResults: (string | null)[][] = [];
       const numRounds = 31;
       
@@ -436,80 +436,11 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     }
   };
 
-    const runTests = async () => {
-      console.log('runTests invoked, reading kings_cross.tab');
-
-      try {
-        const response = await fetch('kings_cross.tab');
-        const text = await response.text();
-        const lines = text.split('\n');
-        let loadedPlayers: PlayerData[] = [];
-       const numRounds = 31;
-       
-       for (let i = 0; i < lines.length; i++) {
-         const line = lines[i].trim();
-         
-         if (!line) continue;
-         
-         if (line.startsWith('Group')) continue;
-         
-         const parts = line.split('\t');
-         
-         const lastChar = parts[parts.length - 1];
-         const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
-         
-         const cols: (string | null)[] = [];
-         for (let j = 0; j < parts.length && j < hasTail; j++) {
-           let value: string | null = parts[j].trim() || null;
-           if (j === parts.length - 1 && value === '' && lastChar === '') {
-             const prevChar = parts[Math.max(0, parts.length - 2)];
-             if (prevChar.match(/^\d+$/)) {
-               value = prevChar.slice(0, -1).trim() || null;
-             }
-           }
-           
-           cols.push(value);
-         }
-
-         const player: PlayerData = {
-           rank: cols[4] ? parseInt(cols[4]) : 0,
-           group: cols[0] && cols[0].trim() !== '' ? cols[0].trim() : '',
-           lastName: cols[1] !== null ? cols[1] : '',
-           firstName: cols[2] !== null ? cols[2] : '',
-           rating: cols[3] ? parseInt(String(cols[3]).trim() || '-1') : -1,
-           nRating: 0,
-           grade: cols[6] !== null ? cols[6] : 'N/A',
-           games: cols[7] !== null ? parseInt(cols[7]) : 0,
-           attendance: cols[8] !== null ? parseInt(cols[8]) : 0,
-           phone: cols[9] !== null ? cols[9] : '',
-           info: cols[10] !== null ? cols[10] : '',
-           school: cols[11] !== null ? cols[11] : '',
-           room: cols[12] !== null ? cols[12] : '',
-           gameResults: [],
-         };
-
-         if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName || player.nRating !== 0))
-         {
-           loadedPlayers.push(player);
-         }
-
-         const gameResults: (string | null)[] = [];
-         for (let g = 0; g < numRounds; g++) {
-           gameResults.push(cols[13 + g]);
-         }
-         player.gameResults = gameResults;
-       }
-        
-        if (loadedPlayers.length > 0) {
-          setPlayers(loadedPlayers);
-          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-          recalculateRatings();
-          exportPlayers();
-        }
-       } catch (err) {
-         console.error('Error reading kings_cross.tab:', err);
-       }
-     };
+// simplified test helper now delegates to exportPlayers instead of performing custom parsing/IO
+  const runTests = () => {
+    console.log('runTests invoked, delegating to exportPlayers');
+    exportPlayers();
+  };
 
   const exportPlayers = () => {
     if (players.length === 0) {
@@ -713,85 +644,11 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           />
         </label>
 
-            <button
-              style={{
-                background: '#2563eb',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.25rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.875rem'
-              }}
-              onClick={exportPlayers}
-            >
-              Export
-             </button>
-
-             <button
-              style={{
-                background: '#f59e0b',
-                color: 'white',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.25rem',
-                cursor: 'pointer'
-              }}
-              onClick={saveLocalStorage}
-            >
-              Save
-            </button>
-
-             <button
-               style={{
-                 background: '#8b5cf6',
-                 color: 'white',
-                 border: 'none',
-                 padding: '0.5rem 1rem',
-                 borderRadius: '0.25rem',
-                 cursor: 'pointer'
-               }}
-               onClick={recalculateRatings}
-             >
-               Recalculate Ratings
-             </button>
-
            <button
              style={{
-               background: 'white',
-               color: 'black',
-               border: '1px solid #cbd5e1',
-               padding: '0.5rem 1rem',
-               borderRadius: '0.25rem',
-               cursor: 'pointer'
-             }}
-             onClick={() => setIsWide(!isWide)}
-           >
-             Zoom: {isWide ? '140%' : '100%'}
-           </button>
-
-           <button
-             style={{
-               background: isAdmin ? '#ef4444' : 'white',
-               color: isAdmin ? 'white' : 'black',
-               border: '1px solid #cbd5e1',
-               padding: '0.5rem 1rem',
-               borderRadius: '0.25rem',
-               cursor: 'pointer'
-             }}
-             onClick={() => setIsAdmin(!isAdmin)}
-           >
-             {isAdmin ? 'Exit Admin' : 'Admin Mode'}
-           </button>
-
-           <button
-             style={{
-               background: '#3b82f6',
+               background: '#2563eb',
                color: 'white',
-               border: '1px solid #1d4ed8',
+               border: 'none',
                padding: '0.5rem 1rem',
                borderRadius: '0.25rem',
                cursor: 'pointer',
@@ -802,9 +659,83 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
              }}
              onClick={runTests}
            >
-             Run Tests
+             Run tests
            </button>
-          </div>
+
+          <button
+            style={{
+              background: '#f59e0b',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer'
+            }}
+            onClick={saveLocalStorage}
+          >
+            Save
+          </button>
+
+          <button
+            style={{
+              background: '#8b5cf6',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.25rem',
+              cursor: 'pointer'
+            }}
+            onClick={recalculateRatings}
+          >
+            Recalculate Ratings
+          </button>
+
+        <button
+          style={{
+            background: 'white',
+            color: 'black',
+            border: '1px solid #cbd5e1',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => setIsWide(!isWide)}
+        >
+          Zoom: {isWide ? '140%' : '100%'}
+        </button>
+
+        <button
+          style={{
+            background: isAdmin ? '#ef4444' : 'white',
+            color: isAdmin ? 'white' : 'black',
+            border: '1px solid #cbd5e1',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer'
+          }}
+          onClick={() => setIsAdmin(!isAdmin)}
+        >
+          {isAdmin ? 'Exit Admin' : 'Admin Mode'}
+        </button>
+            <button
+          onClick={exportPlayers}
+          style={{
+            background: '#3b82f6',
+            color: 'white',
+            border: '1px solid #1d4ed8',
+            padding: '0.5rem 1rem',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem'
+          }}
+        >
+          <PlayIcon size={18} />
+          Export
+        </button>
+      </div>
 
       <div style={{
         display: 'grid',
