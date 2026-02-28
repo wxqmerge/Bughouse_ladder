@@ -458,7 +458,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
      players.forEach(player => {
        const gameResults = player.gameResults || new Array(31).fill(null);
 
-       output += `${player.group || ''}\t${player.lastName || ''}\t${player.firstName || ''}\t${player.rating > 0 ? player.rating : ''}\t${player.rank}\t${player.nRating > 0 ? player.nRating : ''}\t${player.grade || ''}\t${player.games || 0}\t${player.attendance || ''}\t${player.phone || ''}\t${player.info || ''}\t${player.school || ''}\t${player.room || ''}`;
+        output += `${player.group || ''}\t${player.lastName || ''}\t${player.firstName || ''}\t${player.rating || ''}\t${player.rank}\t${player.nRating || ''}\t${player.grade || ''}\t${player.games || 0}\t${player.attendance || ''}\t${player.phone || ''}\t${player.info || ''}\t${player.school || ''}\t${player.room || ''}`;
 
        output += gameResults.map(r => r || '').join('\t');
        output += '\n';
@@ -876,8 +876,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                                 {field === 'group' && player.group}
                                 {field === 'lastName' && player.lastName}
                                 {field === 'firstName' && player.firstName}
-                                {field === 'rating' && player.rating > 0 ? player.rating : ''}
-                                {field === 'nRating' && player.nRating > 0 ? player.nRating : ''}
+                                 {field === 'rating' && player.rating !== undefined ? player.rating : ''}
+                                 {field === 'nRating' && player.nRating !== undefined ? player.nRating : ''}
                               </td>
                             );
                           })}
