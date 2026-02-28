@@ -729,27 +729,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               onClick={exportPlayers}
             >
               Export
-            </button>
+             </button>
 
-            <button
-              style={{
-                background: '#3b82f6',
-                color: 'white',
-                border: '1px solid #1d4ed8',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.25rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.875rem'
-              }}
-              onClick={runTests}
-            >
-              Run Tests
-            </button>
-
-            <button
+             <button
               style={{
                 background: '#f59e0b',
                 color: 'white',
@@ -777,52 +759,52 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                Recalculate Ratings
              </button>
 
-         <button
-           style={{
-             background: 'white',
-             color: 'black',
-             border: '1px solid #cbd5e1',
-             padding: '0.5rem 1rem',
-             borderRadius: '0.25rem',
-             cursor: 'pointer'
-           }}
-           onClick={() => setIsWide(!isWide)}
-         >
-           Zoom: {isWide ? '140%' : '100%'}
-         </button>
+           <button
+             style={{
+               background: 'white',
+               color: 'black',
+               border: '1px solid #cbd5e1',
+               padding: '0.5rem 1rem',
+               borderRadius: '0.25rem',
+               cursor: 'pointer'
+             }}
+             onClick={() => setIsWide(!isWide)}
+           >
+             Zoom: {isWide ? '140%' : '100%'}
+           </button>
 
-         <button
-           style={{
-             background: isAdmin ? '#ef4444' : 'white',
-             color: isAdmin ? 'white' : 'black',
-             border: '1px solid #cbd5e1',
-             padding: '0.5rem 1rem',
-             borderRadius: '0.25rem',
-             cursor: 'pointer'
-           }}
-           onClick={() => setIsAdmin(!isAdmin)}
-         >
-           {isAdmin ? 'Exit Admin' : 'Admin Mode'}
-         </button>
+           <button
+             style={{
+               background: isAdmin ? '#ef4444' : 'white',
+               color: isAdmin ? 'white' : 'black',
+               border: '1px solid #cbd5e1',
+               padding: '0.5rem 1rem',
+               borderRadius: '0.25rem',
+               cursor: 'pointer'
+             }}
+             onClick={() => setIsAdmin(!isAdmin)}
+           >
+             {isAdmin ? 'Exit Admin' : 'Admin Mode'}
+           </button>
 
-             <button
-               style={{
-                 background: '#3b82f6',
-                 color: 'white',
-                 border: '1px solid #1d4ed8',
-                 padding: '0.5rem 1rem',
-                 borderRadius: '0.25rem',
-                 cursor: 'pointer',
-                 display: 'inline-flex',
-                 alignItems: 'center',
-                 gap: '0.5rem',
-                 fontSize: '0.875rem'
-               }}
-               onClick={runTests}
-             >
-               Run Tests
-             </button>
-        </div>
+           <button
+             style={{
+               background: '#3b82f6',
+               color: 'white',
+               border: '1px solid #1d4ed8',
+               padding: '0.5rem 1rem',
+               borderRadius: '0.25rem',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem'
+             }}
+             onClick={runTests}
+           >
+             Run Tests
+           </button>
+          </div>
 
       <div style={{
         display: 'grid',
