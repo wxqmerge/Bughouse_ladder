@@ -14,6 +14,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [sortBy, setSortBy] = useState<'rank' | 'nRating' | 'rating' | 'byName' | null>(null);
   const [hasData, setHasData] = useState(false);
   const [projectName, setProjectName] = useState<string>('Bughouse Chess Ladder');
+  const [lastFile, setLastFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // VB6 Line: 894 - Initialize with sample data
@@ -151,7 +152,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   }, []);
 
   const loadPlayers = (file?: File) => {
-    const fileToLoad = file || fileInputRef.current?.files?.[0];
+    const fileToLoad = file || lastFile;
 
     if (!fileToLoad) {
       return;
@@ -159,8 +160,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
 
     const projectName = fileToLoad.name.replace(/\.[^.]+$/, '');
     setProjectName(projectName);
+    setLastFile(fileToLoad);
 
-        const reader = new FileReader();
+    const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const lines = text.split('\n');
@@ -721,7 +723,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) loadPlayers(file);
+              if (file) {
+                setLastFile(file);
+                loadPlayers(file);
+              }
             }}
           />
         </label>
