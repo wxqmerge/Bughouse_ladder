@@ -115,11 +115,24 @@
 3. **@tanstack/react-table**: Table component and features
 
 ### Known Issues to Avoid
-1. Don't duplicate extensive logic (runTests now simply calls other buttons and should stay lightweight)
+1. Don't duplicate extensive logic (runTests manually reads and parses kings_cross.tab file, then calls recalculateRatings and exportPlayers)
 2. Don't use `any` type when proper typing exists
 3. Don't access localStorage synchronously in render without checks
 4. Don't mutate state directly—always use setter functions
 5. Don't inline complex event handlers that reference local variables
+
+## Function Implementation Details
+
+### runTests() Function
+The `runTests()` function in `LadderForm.tsx` is a testing utility that:
+- **Purpose**: to simulate pressing buttons in GUI
+- **Workflow**:
+  1. Creates a hidden file input element
+  2. Triggers file selection dialog
+  3. When user selects a file, reads it as text
+  5. Sets player data from parsing results
+  6. Calls `recalculateRatings()` to calculate new ratings based on game results
+  7. Calls `exportPlayers()` to export the updated data
 
 ## Getting Started for New Agents
 
