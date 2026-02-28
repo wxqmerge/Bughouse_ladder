@@ -739,6 +739,43 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     console.log('testFileInput.click() called');
   };
 
+  const exportPlayers = () => {
+    if (players.length === 0) {
+      console.error('No players to export');
+      return;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `Export_Results_${timestamp}.txt`;
+
+    const headerLine = 'Group\tLast Name\tFirst Name\tRating\tRnk\tN Rate\tGr\tX\tPhone\tInfo\tSchool\tRoom\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20\t21\t22\t23\t24\t25\t26\t27\t28\t29\t30\t31\Version 1.21';
+
+    let output = headerLine + '\n';
+
+    players.forEach(player => {
+      const gameResults = player.gameResults || new Array(31).fill(null);
+
+      output += `${player.group || ''}\t${player.lastName || ''}\t${player.firstName || ''}\t${player.rating > 0 ? player.rating : ''}\t${player.rank}\t${player.nRating > 0 ? player.nRating : ''}\t${player.grade || ''}\t${player.games || 0}\t${player.attendance || ''}\t${player.phone || ''}\t${player.info || ''}\t${player.school || ''}\t${player.room || ''}\t`;
+
+      output += gameResults.map(r => r || '').join('\t');
+      output += '\n';
+    });
+
+    const blob = new Blob([output], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log(`Exported ${players.length} players to ${filename}`);
+  };
+
   if (!players || players.length === 0) {
     return (
       <div style={{ padding: '2rem', color: '#64748b' }}>
@@ -904,18 +941,23 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           />
         </label>
 
-          <button
-            style={{
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.25rem',
-               cursor: 'pointer'
-            }}
-          >
-            Export
-          </button>
+           <button
+             style={{
+               background: '#2563eb',
+               color: 'white',
+               border: 'none',
+               padding: '0.5rem 1rem',
+               borderRadius: '0.25rem',
+               cursor: 'pointer',
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '0.5rem',
+               fontSize: '0.875rem'
+             }}
+             onClick={runTests}
+           >
+             Export
+           </button>
 
           <button
             style={{
@@ -973,7 +1015,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           {isAdmin ? 'Exit Admin' : 'Admin Mode'}
         </button>
             <button
-          onClick={runTests}
+          onClick={exportPlayers}
           style={{
             background: '#3b82f6',
             color: 'white',
@@ -988,7 +1030,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           }}
         >
           <PlayIcon size={18} />
-          Run Tests
+          Export
         </button>
       </div>
 

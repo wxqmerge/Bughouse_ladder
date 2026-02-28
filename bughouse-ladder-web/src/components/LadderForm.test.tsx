@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import LadderForm from '../components/LadderForm'
+import '@testing-library/jest-dom'
 
 describe('LadderForm component', () => {
   it('should render the form', () => {
