@@ -294,44 +294,62 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     reader.readAsText(fileToLoad);
   };
 
-   const recalculateRatings = () => {
-    const playersCopy = [...players];
-    const EloK = 20;
-    const EloMultiplier = 1;
+    const recalculateRatings = () => {
+     const playersCopy = [...players];
+     const EloK = 20;
 
-    playersCopy.forEach((player, index) => {
-      let totalScore = 0;
-      const gameResults = player.gameResults || new Array(31).fill(null);
+     playersCopy.forEach((player) => {
+       const gameResults = player.gameResults || new Array(31).fill(null);
+       const actualScore = calculateActualScore(gameResults);
+       const expectedScore = calculateExpectedScore(player.rating, playersCopy, gameResults);
+       const newRating = calculateNewRating(player.rating, actualScore, expectedScore, EloK);
+       player.nRating = newRating;
+     });
 
-      if (player.rating > 0) {
-        player.nRating = player.rating;
+     setPlayers(playersCopy);
+     localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
+   };
 
-        gameResults.forEach(result => {
-          if (result && result.match(/[WL]/i)) {
-            const opponent = playersCopy[index + 1];
-            if (opponent && opponent.rating > 0) {
-              if (result.toUpperCase() === 'W') {
-                totalScore += 1;
-              } else if (result.toUpperCase() === 'L') {
-                totalScore += 0;
-              }
-            }
-          }
-        });
+   const calculateActualScore = (gameResults: (string | null)[]) => {
+     let score = 0;
+     let totalGames = 0;
 
-        if (totalScore > 0) {
-          player.nRating = Math.round(player.rating + (EloK * (totalScore - 0.5) * EloMultiplier * 2));
-        }
+     gameResults.forEach(result => {
+       if (result && result.match(/[WL]/i)) {
+         totalGames++;
+         if (result.toUpperCase() === 'W') {
+           score += 1;
+         } else if (result.toUpperCase() === 'L') {
+           score += 0;
+         }
+       }
+     });
 
-        if (player.nRating < 0) {
-          player.nRating = 0;
-        }
-      }
-    });
+     return totalGames > 0 ? score / totalGames : 0;
+   };
 
-    setPlayers(playersCopy);
-    localStorage.setItem('ladder_players', JSON.stringify(playersCopy));
-  };
+   const calculateExpectedScore = (ratingA: number, playersCopy: PlayerData[], gameResults: (string | null)[]) => {
+     let expectedScore = 0;
+     let totalGames = 0;
+
+     gameResults.forEach((result, index) => {
+       if (result && result.match(/[WL]/i)) {
+         const opponent = playersCopy[index];
+         if (opponent && opponent.rating > 0) {
+           const expectedScoreForGame = 1 / (1 + Math.pow(10, (opponent.rating - ratingA) / 400));
+           expectedScore += expectedScoreForGame;
+           totalGames++;
+         }
+       }
+     });
+
+     return totalGames > 0 ? expectedScore / totalGames : 0;
+   };
+
+   const calculateNewRating = (oldRating: number, actualScore: number, expectedScore: number, EloK: number) => {
+     const newRating = Math.round(oldRating + EloK * (actualScore - expectedScore));
+     return Math.max(0, newRating);
+   };
 
   const Chess_Compare = (Row1: PlayerData, Row2: PlayerData, sortType: 'last' | 'first', _col_sel: number) => {
     const result1 = sortType === 'last' ? Row1.lastName : Row1.firstName;
