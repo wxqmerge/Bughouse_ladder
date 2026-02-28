@@ -435,12 +435,17 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     } catch (err) {
     }
   };
-
-// simplified test helper now delegates to exportPlayers instead of performing custom parsing/IO
+// simplified test helper now delegates to other buttons instead of performing custom parsing/IO
   const runTests = () => {
     console.log('runTests invoked, delegating to exportPlayers');
-    exportPlayers();
-  };
+      //fileInput.click();
+      loadPlayers( );
+             console.log(`Loaded players from kings_cross.tab`);
+            recalculateRatings();
+            exportPlayers();
+          }
+    
+
 
   const exportPlayers = () => {
     if (players.length === 0) {
