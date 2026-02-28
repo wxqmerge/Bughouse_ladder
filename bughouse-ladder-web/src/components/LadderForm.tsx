@@ -152,17 +152,17 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   }, []);
 
    const loadPlayers = (file?: File) => {
-    const fileToLoad = file || lastFile;
+      const fileToLoad = file || lastFile;
 
-    if (!fileToLoad) {
-      return;
-    }
+     if (!fileToLoad) {
+       return;
+     }
 
-    const projectName = fileToLoad.name.replace(/\.[^.]+$/, '');
-    setProjectName(projectName);
-    setLastFile(fileToLoad);
-    setHasData(false);
-    setSortBy(null);
+     const projectName = fileToLoad.name.replace(/\.[^.]+$/, '');
+     setProjectName(projectName);
+     setLastFile(fileToLoad);
+     setHasData(false);
+     setSortBy(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -231,51 +231,51 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           loadedPlayers = loadedPlayers.slice(0, 200);
         }
 
-         if (loadedPlayers.length > 0) {
-            const numRounds = 31;
-            localStorage.clear();
-            setHasData(true);
+          if (loadedPlayers.length > 0) {
+             const numRounds = 31;
+             localStorage.clear();
+             setHasData(true);
 
-           if (sortBy === 'rank') {
-             loadedPlayers.sort((a, b) => a.rank - b.rank);
-           } else if (sortBy === 'nRating') {
-             loadedPlayers.sort((a, b) => {
-               const ratingA = a.nRating || 0;
-               const ratingB = b.nRating || 0;
-               if (ratingA !== ratingB) {
-                 return ratingB - ratingA;
-               }
-               return a.rank - b.rank;
-             });
-           } else if (sortBy === 'rating') {
-             loadedPlayers.sort((a, b) => {
-               const ratingA = a.rating || 0;
-               const ratingB = b.rating || 0;
-               if (ratingA !== ratingB) {
-                 return ratingB - ratingA;
-               }
-               return a.rank - b.rank;
-             });
-           } else if (sortBy === 'byName') {
-             loadedPlayers.sort((a, b) => Chess_Compare(a, b, 'last', 0));
-           }
-
-          const sortedGameResults: (string | null)[][] = [];
-
-          loadedPlayers.forEach(player => {
-            const gameResults: (string | null)[] = [];
-            for (let g = 0; g < numRounds; g++) {
-              gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+            if (sortBy === 'rank') {
+              loadedPlayers.sort((a, b) => a.rank - b.rank);
+            } else if (sortBy === 'nRating') {
+              loadedPlayers.sort((a, b) => {
+                const ratingA = a.nRating || 0;
+                const ratingB = b.nRating || 0;
+                if (ratingA !== ratingB) {
+                  return ratingB - ratingA;
+                }
+                return a.rank - b.rank;
+              });
+            } else if (sortBy === 'rating') {
+              loadedPlayers.sort((a, b) => {
+                const ratingA = a.rating || 0;
+                const ratingB = b.rating || 0;
+                if (ratingA !== ratingB) {
+                  return ratingB - ratingA;
+                }
+                return a.rank - b.rank;
+              });
+            } else if (sortBy === 'byName') {
+              loadedPlayers.sort((a, b) => Chess_Compare(a, b, 'last', 0));
             }
-            const playerIndex = loadedPlayers.indexOf(player);
-            sortedGameResults[playerIndex] = gameResults;
-          });
 
-          localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-          localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
-          setPlayers(loadedPlayers);
-          setHasData(true);
-          setSortBy(null);
+           const sortedGameResults: (string | null)[][] = [];
+
+           loadedPlayers.forEach(player => {
+             const gameResults: (string | null)[] = [];
+             for (let g = 0; g < numRounds; g++) {
+               gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+             }
+             const playerIndex = loadedPlayers.indexOf(player);
+             sortedGameResults[playerIndex] = gameResults;
+           });
+
+           localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+           localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
+           setPlayers(loadedPlayers);
+           setHasData(true);
+           setSortBy(null);
         } else {
         }
     };
