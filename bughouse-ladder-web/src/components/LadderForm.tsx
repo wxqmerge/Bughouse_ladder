@@ -151,7 +151,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     setSortBy(null);
   }, []);
 
-  const loadPlayers = (file?: File) => {
+   const loadPlayers = (file?: File) => {
     const fileToLoad = file || lastFile;
 
     if (!fileToLoad) {
@@ -161,6 +161,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     const projectName = fileToLoad.name.replace(/\.[^.]+$/, '');
     setProjectName(projectName);
     setLastFile(fileToLoad);
+    setHasData(false);
+    setSortBy(null);
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -229,11 +231,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           loadedPlayers = loadedPlayers.slice(0, 200);
         }
 
-          if (loadedPlayers.length > 0) {
-           const numRounds = 31;
-           localStorage.clear();
-           setSortBy(null);
-           setHasData(true);
+         if (loadedPlayers.length > 0) {
+            const numRounds = 31;
+            localStorage.clear();
+            setHasData(true);
 
            if (sortBy === 'rank') {
              loadedPlayers.sort((a, b) => a.rank - b.rank);
