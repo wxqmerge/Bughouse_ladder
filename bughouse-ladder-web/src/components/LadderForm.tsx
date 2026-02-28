@@ -229,10 +229,11 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           loadedPlayers = loadedPlayers.slice(0, 200);
         }
 
-        if (loadedPlayers.length > 0) {
+          if (loadedPlayers.length > 0) {
            const numRounds = 31;
            localStorage.clear();
            setSortBy(null);
+           setHasData(true);
 
            if (sortBy === 'rank') {
              loadedPlayers.sort((a, b) => a.rank - b.rank);
