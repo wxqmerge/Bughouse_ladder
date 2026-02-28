@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Project Documentation
+
+- **Project Description**: See `description.md` for detailed information about the Bughouse Chess Ladder application
+- **Features**: File management, player sorting, rating recalculation, game results tracking
+- **Data Format**: Player data structure and game results format specifications
+
 ## Build and Development Commands
 
 ### Development

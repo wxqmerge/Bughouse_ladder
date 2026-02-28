@@ -45,6 +45,7 @@ export interface PlayerData {
   phone: string;
   school: string;
   room: string;
+  gameResults: (string | null)[];
 }
 
 export type PlayersArray = Record<number, PlayerData>;

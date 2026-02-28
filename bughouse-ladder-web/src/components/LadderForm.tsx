@@ -17,114 +17,121 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [lastFile, setLastFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // VB6 Line: 894 - Initialize with sample data
-  useEffect(() => {
-    const samplePlayers: PlayerData[] = [
-      {
-        rank: 1,
-        group: "A",
-        lastName: "Johnson",
-        firstName: "John",
-        rating: -1,
-        nRating: 1200,
-        grade: "6th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 2,
-        group: "B",
-        lastName: "Smith",
-        firstName: "Jane",
-        rating: -1,
-        nRating: 1150,
-        grade: "5th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 3,
-        group: "C",
-        lastName: "Williams",
-        firstName: "Robert",
-        rating: -1,
-        nRating: 1100,
-        grade: "4th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 4,
-        group: "D",
-        lastName: "Brown",
-        firstName: "Emily",
-        rating: -1,
-        nRating: 1050,
-        grade: "3rd",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 5,
-        group: "A1",
-        lastName: "Davis",
-        firstName: "Michael",
-        rating: -1,
-        nRating: 1300,
-        grade: "7th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 6,
-        group: "A",
-        lastName: "Garcia",
-        firstName: "Sarah",
-        rating: -1,
-        nRating: 1000,
-        grade: "4th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
-      {
-        rank: 7,
-        group: "B",
-        lastName: "Miller",
-        firstName: "David",
-        rating: -1,
-        nRating: 950,
-        grade: "4th",
-        games: 0,
-        attendance: 0,
-        info: "",
-        phone: "",
-        school: "",
-        room: "",
-      },
+   // VB6 Line: 894 - Initialize with sample data
+   useEffect(() => {
+     const samplePlayers: PlayerData[] = [
+       {
+         rank: 1,
+         group: "A",
+         lastName: "Johnson",
+         firstName: "John",
+         rating: -1,
+         nRating: 1200,
+         grade: "6th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+       {
+         rank: 2,
+         group: "B",
+         lastName: "Smith",
+         firstName: "Jane",
+         rating: -1,
+         nRating: 1150,
+         grade: "5th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+       {
+         rank: 3,
+         group: "C",
+         lastName: "Williams",
+         firstName: "Robert",
+         rating: -1,
+         nRating: 1100,
+         grade: "4th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+       {
+         rank: 4,
+         group: "D",
+         lastName: "Brown",
+         firstName: "Emily",
+         rating: -1,
+         nRating: 1050,
+         grade: "3rd",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+       {
+         rank: 5,
+         group: "A1",
+         lastName: "Davis",
+         firstName: "Michael",
+         rating: -1,
+         nRating: 1300,
+         grade: "7th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+       {
+         rank: 6,
+         group: "A",
+         lastName: "Garcia",
+         firstName: "Sarah",
+         rating: -1,
+         nRating: 1000,
+         grade: "4th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
+        {
+          rank: 7,
+          group: "B",
+          lastName: "Miller",
+          firstName: "David",
+          rating: -1,
+          nRating: 950,
+         grade: "4th",
+         games: 0,
+         attendance: 0,
+         info: "",
+         phone: "",
+         school: "",
+         room: "",
+         gameResults: [],
+       },
     ];
 
     const settings = localStorage.getItem('ladder_settings');
@@ -136,7 +143,11 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         const parsed = JSON.parse(savedPlayers);
         if (Array.isArray(parsed) && parsed.length > 0) {
           console.log('Loading players from LocalStorage:', parsed);
-          setPlayers(parsed);
+          const playersWithResults = parsed.map((player: any) => ({
+            ...player,
+            gameResults: player.gameResults || new Array(31).fill(null)
+          }));
+          setPlayers(playersWithResults);
           setHasData(true);
           setSortBy(null);
           return;
@@ -212,9 +223,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           info: cols[10] !== null ? cols[10] : '',
           school: cols[11] !== null ? cols[11] : '',
           room: cols[12] !== null ? cols[12] : '',
+          gameResults: [],
         };
 
-        if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName || player.nRating !== 0)) 
+        if (parseInt(String(player.rank)) > 0 && (player.lastName || player.firstName || player.nRating !== 0))
         {
           loadedPlayers.push(player);
         }
@@ -223,7 +235,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         for (let g = 0; g < numRounds; g++) {
           gameResults.push(cols[13 + g]);
         }
-        allGameResults.push(gameResults);
+        player.gameResults = gameResults;
       }
 
        // Max 200 players limit
@@ -265,17 +277,16 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
            loadedPlayers.forEach(player => {
              const gameResults: (string | null)[] = [];
              for (let g = 0; g < numRounds; g++) {
-               gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
-             }
-             const playerIndex = loadedPlayers.indexOf(player);
-             sortedGameResults[playerIndex] = gameResults;
-           });
+                gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
+              }
+              const playerIndex = loadedPlayers.indexOf(player);
+              sortedGameResults[playerIndex] = gameResults;
+            });
 
-           localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
-           localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
-           setPlayers(loadedPlayers);
-           setHasData(true);
-           setSortBy(null);
+            localStorage.setItem('ladder_players', JSON.stringify(loadedPlayers));
+            setPlayers(loadedPlayers);
+            setHasData(true);
+            setSortBy(null);
         } else {
         }
     };
@@ -283,16 +294,14 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     reader.readAsText(fileToLoad);
   };
 
-  const recalculateRatings = () => {
+   const recalculateRatings = () => {
     const playersCopy = [...players];
     const EloK = 20;
     const EloMultiplier = 1;
 
     playersCopy.forEach((player, index) => {
       let totalScore = 0;
-      const gameResultsStr = localStorage.getItem('ladder_game_results');
-      const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
-      const gameResults = allGameResults[index] || new Array(20).fill('');
+      const gameResults = player.gameResults || new Array(31).fill(null);
 
       if (player.rating > 0) {
         player.nRating = player.rating;
@@ -350,36 +359,32 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
    const handleSort = (sortMethod: 'rank' | 'nRating' | 'rating' | 'byName') => {
     setSortBy(sortMethod);
     setHasData(true);
-    
-    const numRounds = 31;
-    const gameResultsStr = localStorage.getItem('ladder_game_results');
-    const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
 
-    const playersWithResults = players.map((player, index) => ({
-      player,
-      gameResults: allGameResults[index] || new Array(numRounds).fill(null)
+    const playersWithResults = players.map((player) => ({
+      ...player,
+      gameResults: player.gameResults || new Array(31).fill(null)
     }));
 
     playersWithResults.sort((a, b) => {
       if (sortMethod === 'rank') {
-        return a.player.rank - b.player.rank;
+        return a.rank - b.rank;
       } else if (sortMethod === 'nRating') {
-        const ratingA = a.player.nRating || 0;
-        const ratingB = b.player.nRating || 0;
+        const ratingA = a.nRating || 0;
+        const ratingB = b.nRating || 0;
         if (ratingA !== ratingB) {
           return ratingB - ratingA;
         }
-        return a.player.rank - b.player.rank;
+        return a.rank - b.rank;
       } else if (sortMethod === 'rating') {
-        const ratingA = a.player.rating || 0;
-        const ratingB = b.player.rating || 0;
+        const ratingA = a.rating || 0;
+        const ratingB = b.rating || 0;
         if (ratingA !== ratingB) {
           return ratingB - ratingA;
         }
-        return a.player.rank - b.player.rank;
+        return a.rank - b.rank;
       } else if (sortMethod === 'byName') {
-        const resultA = a.player.lastName || a.player.firstName;
-        const resultB = b.player.lastName || b.player.firstName;
+        const resultA = a.lastName || a.firstName;
+        const resultB = b.lastName || b.firstName;
         if (resultA && !resultB) return 1;
         if (!resultA && resultB) return -1;
         if (!resultA && !resultB) return 0;
@@ -391,29 +396,21 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     });
 
     const sortedPlayers = playersWithResults.map((item, index) => {
-      item.player.rank = index + 1;
-      return item.player;
+      item.rank = index + 1;
+      return item;
     });
-
-    const sortedGameResults = playersWithResults.map(item => item.gameResults);
 
     setPlayers(sortedPlayers);
     localStorage.setItem('ladder_players', JSON.stringify(sortedPlayers));
-    localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
    };
 
-  const saveLocalStorage = () => {
+   const saveLocalStorage = () => {
     if (players.length === 0) {
       return;
     }
 
     try {
       localStorage.setItem('ladder_players', JSON.stringify(players));
-
-      const gameResultsStr = localStorage.getItem('ladder_game_results');
-      const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
-
-      localStorage.setItem('ladder_game_results', JSON.stringify(allGameResults));
     } catch (err) {
     }
   };
@@ -475,26 +472,27 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               }
             }
 
-            cols.push(value);
-          }
+             cols.push(value);
+           }
 
-          const player: PlayerData = {
-            rank: parseInt(cols[4] || '0'),
-            group: cols[0] || '',
-            lastName: cols[1] || '',
-            firstName: cols[2] || '',
-            rating: parseInt(cols[3] || '-1'),
-            nRating: parseInt(cols[5] || '0'),
-            grade: cols[6] || '',
-            games: parseInt(cols[7] || '0'),
-            attendance: cols[8] || '',
-            info: cols[9] || '',
-            phone: cols[10] || '',
-            school: cols[11] || '',
-            room: cols[12] || '',
-          };
+           const player: PlayerData = {
+             rank: parseInt(cols[4] || '0'),
+             group: cols[0] || '',
+             lastName: cols[1] || '',
+             firstName: cols[2] || '',
+             rating: parseInt(cols[3] || '-1'),
+             nRating: parseInt(cols[5] || '0'),
+             grade: cols[6] || '',
+             games: parseInt(cols[7] || '0'),
+             attendance: cols[8] || '',
+             info: cols[9] || '',
+             phone: cols[10] || '',
+             school: cols[11] || '',
+             room: cols[12] || '',
+             gameResults: [],
+           };
 
-          loadedPlayers.push(player);
+           loadedPlayers.push(player);
 
           const gameResults: (string | null)[] = [];
           for (let g = 0; g < numRounds; g++) {
@@ -563,10 +561,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
           }
           const playerIndex = loadedPlayers.indexOf(player);
-          sortedGameResults[playerIndex] = gameResults;
-        });
+           sortedGameResults[playerIndex] = gameResults;
+         });
 
-        localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
       };
 
       console.log('Calling reader.readAsText');
@@ -618,25 +615,26 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
             cols.push(value);
           }
 
-          console.log('All columns parsed, creating player object');
+           console.log('All columns parsed, creating player object');
 
-          const player: PlayerData = {
-            rank: parseInt(cols[4] || '0'),
-            group: cols[0] || '',
-            lastName: cols[1] || '',
-            firstName: cols[2] || '',
-            rating: parseInt(cols[3] || '-1'),
-            nRating: parseInt(cols[5] || '0'),
-            grade: cols[6] || '',
-            games: parseInt(cols[7] || '0'),
-            attendance: cols[8] || '',
-            info: cols[9] || '',
-            phone: cols[10] || '',
-            school: cols[11] || '',
-            room: cols[12] || '',
-          };
+           const player: PlayerData = {
+             rank: parseInt(cols[4] || '0'),
+             group: cols[0] || '',
+             lastName: cols[1] || '',
+             firstName: cols[2] || '',
+             rating: parseInt(cols[3] || '-1'),
+             nRating: parseInt(cols[5] || '0'),
+             grade: cols[6] || '',
+             games: parseInt(cols[7] || '0'),
+             attendance: cols[8] || '',
+             info: cols[9] || '',
+             phone: cols[10] || '',
+             school: cols[11] || '',
+             room: cols[12] || '',
+             gameResults: [],
+           };
 
-          loadedPlayers.push(player);
+           loadedPlayers.push(player);
           console.log(`Player created: rank ${player.rank}, name ${player.lastName}, ${player.firstName}`);
 
           const gameResults: (string | null)[] = [];
@@ -706,11 +704,10 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           for (let g = 0; g < numRounds; g++) {
             gameResults.push(allGameResults[player.rank - 1]?.[g] || null);
           }
-          const playerIndex = loadedPlayers.indexOf(player);
-          sortedGameResults[playerIndex] = gameResults;
-        });
+           const playerIndex = loadedPlayers.indexOf(player);
+           sortedGameResults[playerIndex] = gameResults;
+         });
 
-        localStorage.setItem('ladder_game_results', JSON.stringify(sortedGameResults));
       };
 
       reader.readAsText(file);
@@ -1066,11 +1063,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
               ))}
             </tr>
            </thead>
-           <tbody>
-             {players.map((player, row) => {
-               const gameResultsStr = localStorage.getItem('ladder_game_results');
-               const allGameResults: (string | null)[][] = gameResultsStr ? JSON.parse(gameResultsStr) : [];
-               const gameResults = allGameResults[row] || new Array(20).fill('');
+            <tbody>
+              {players.map((player, row) => {
+                const gameResults = player.gameResults || new Array(31).fill(null);
 
                return (
                  <tr key={row} style={{
@@ -1123,26 +1118,25 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                   {gameResults.map((result, gCol) => {
                     const isEditable = isAdmin;
                     return (
-                      <td
-                        key={`game-${row}-${gCol}`}
-                        contentEditable={isEditable}
-                        suppressContentEditableWarning={true}
-                        onBlur={(e) => {
-                          if (isEditable && e.target.textContent) {
-                            const value = e.target.textContent;
-                            const newAllGameResults = allGameResults.map((r, i) => i === player.rank - 1 ? [...gameResults] : r);
-                            newAllGameResults[player.rank - 1][gCol] = value;
-                            localStorage.setItem('ladder_game_results', JSON.stringify(newAllGameResults));
-                            setPlayers(prevPlayers => {
-                              const updatedPlayers = [...prevPlayers];
-                              const index = player.rank - 1;
-                              if (updatedPlayers[index]) {
-                                updatedPlayers[index] = { ...updatedPlayers[index], games: updatedPlayers[index].games + (result ? 0 : 1) };
-                              }
-                              return updatedPlayers;
-                            });
-                          }
-                        }}
+                       <td
+                         key={`game-${row}-${gCol}`}
+                         contentEditable={isEditable}
+                         suppressContentEditableWarning={true}
+                         onBlur={(e) => {
+                           if (isEditable && e.target.textContent) {
+                             const value = e.target.textContent;
+                             setPlayers(prevPlayers => {
+                               const updatedPlayers = [...prevPlayers];
+                               const index = player.rank - 1;
+                               if (updatedPlayers[index]) {
+                                 const newGameResults = [...updatedPlayers[index].gameResults];
+                                 newGameResults[gCol] = value;
+                                 updatedPlayers[index] = { ...updatedPlayers[index], gameResults: newGameResults };
+                               }
+                               return updatedPlayers;
+                             });
+                           }
+                         }}
                         style={{
                           padding: '0.5rem 0.75rem',
                           borderBottom: '1px solid #e2e8f0',
