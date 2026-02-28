@@ -115,7 +115,7 @@
 3. **@tanstack/react-table**: Table component and features
 
 ### Known Issues to Avoid
-1. Don't duplicate extensive logic (runTests now simply calls `exportPlayers` and should stay lightweight)
+1. Don't duplicate extensive logic (runTests now simply calls other buttons and should stay lightweight)
 2. Don't use `any` type when proper typing exists
 3. Don't access localStorage synchronously in render without checks
 4. Don't mutate state directly—always use setter functions
