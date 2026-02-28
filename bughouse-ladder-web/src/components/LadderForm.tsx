@@ -190,25 +190,19 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         
         if (line.startsWith('Group')) continue;
         
-        const parts = line.split('\t');
+ 
+        let cols = line.split('\t');
+        if(cols[0].length >2){
+        // if (line.startsWith('\t')){
+             console.log('adding leading space to line:', line);
+               cols.unshift(' ');    
+         }
         //if (parts.length < 14) continue;  // Need at least columns 0-13
 
-        const lastChar = parts[parts.length - 1];
-        const hasTail = lastChar === '' ? parts.length - 1 : parts.length;
+       // const lastChar = cols[cols.length - 1];
+       // const hasTail = lastChar === '' ? cols.length - 1 : cols.length;
         
-        const cols: (string | null)[] = [];
-        for (let j = 0; j < parts.length && j < hasTail; j++) {
-          let value: string | null = parts[j].trim() || null;
-          if (j === parts.length - 1 && value === '' && lastChar === '') {
-            const prevChar = parts[Math.max(0, parts.length - 2)];
-            if (prevChar.match(/^\d+$/)) {
-              value = prevChar.slice(0, -1).trim() || null;
-            }
-          }
-          
-          cols.push(value);
-        }
-
+        
         const player: PlayerData = {
           rank: cols[4] ? parseInt(cols[4]) : 0,
           group: cols[0] && cols[0].trim() !== '' ? cols[0].trim() : '',
