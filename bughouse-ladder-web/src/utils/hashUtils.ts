@@ -163,6 +163,7 @@ export function parseEntry(
   let numOrChar = 1; // 0 = number, 1 = char
   let entryString = "";
   let errorNum = 0;
+  let resultIndex = 0; // Track which result slot (0 or 1)
 
   for (let i = 1; i <= strlen; i++) {
     const mychar = myText.substring(i - 1, i);
@@ -181,10 +182,12 @@ export function parseEntry(
         numOrChar = 0;
       } else {
         if (myasc === 58) {
+          // Colon separates teams - increment entry
           entry++;
           entryString = "";
           continue;
         } else if (mychar === "W" || mychar === "L" || mychar === "D") {
+          // Score character - store in current result slot
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;
         } else {
@@ -200,8 +203,13 @@ export function parseEntry(
           errorNum = 9;
           break;
         }
+        entry++;
+        entryString = "";
       } else if (numOrChar === 1) {
-        results[entry] = entryString;
+        // Store score character in result slot
+        results[resultIndex] = entryString;
+        // Move to next result slot for next score
+        resultIndex = resultIndex + 1;
       }
 
       if (numOrChar !== 1) {
@@ -263,10 +271,13 @@ export function parseEntry(
   }
 
   // VB6 Line: 262-270 - Return result
+  // Allow 2-player games (playersList[3] === 0, playersList[4] === 0)
+  // or 4-player games (playersList[3] > 0, playersList[4] > 0)
   if (
     errorNum !== 0 ||
     playersList[0] === 0 ||
-    playersList[3] === 0 ||
+    playersList[1] === 0 ||
+    (playersList[3] === 0 && playersList[4] !== 0) || // Invalid: player 4 but not player 3
     scoreList[0] < 0 ||
     scoreList[1] < 0
   ) {

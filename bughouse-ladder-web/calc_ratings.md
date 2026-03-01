@@ -96,7 +96,7 @@ const calculatedPlayers = calculateRatings(processedPlayers, matches);
 
 **Algorithm:**
 
-- Elo K-factor: 20
+- Elo K-factor: 20 
 - For each match:
   - Calculate expected score: `1 / (1 + 10^((|opponentRating| - |myRating|) / 400))`
   - Determine actual score: W=1, L=0, D=0.5
@@ -116,17 +116,6 @@ interface ProcessResult {
 }
 ```
 
-### MatchData
-
-```typescript
-interface MatchData {
-  player1: number; // Player 1 rank
-  player2: number; // Player 2 rank
-  score1: number; // Score for player 1 (0-4)
-  score2: number; // Score for player 2 (0-4)
-  round: number; // Round number (0-30)
-}
-```
 
 ### ValidationResult
 
@@ -166,12 +155,6 @@ dataHash(key, result, 0);
 Player1:Player2[Score]
 ```
 
-**Examples:**
-
-- `10:20W` - Player 10 vs Player 20, Player 10 won
-- `15:25L` - Player 15 vs Player 25, Player 15 lost
-- `8:12D` - Player 8 vs Player 12, Draw
-- `5:15O` - Player 5 vs Player 15, No result
 
 ### Score Codes
 
@@ -184,7 +167,7 @@ Player1:Player2[Score]
 
 After validation, entries are marked with underscore:
 
-- Valid: `"10:20W_"`
+- Valid: `"10W20_"`
 - This indicates the entry passed validation
 
 ## Functions
@@ -249,56 +232,7 @@ const recalculateRatings = () => {
   }
 };
 ```
-
-### Error Correction Flow
-
-```typescript
-const handleCorrectionSubmit = (correctedString: string) => {
-  // Validate corrected string
-  const hashValue = string2long(
-    correctedString,
-    parsedPlayersList,
-    parsedScoreList,
-  );
-
-  if (hashValue < 0) {
-    alert(`Invalid format. Error code: ${Math.abs(hashValue)}`);
-    return;
-  }
-
-  // Update both players' gameResults
-  const updatedPlayers = pendingPlayers.map((p) => ({ ...p }));
-
-  // Update player 1
-  if (player1Rank > 0 && player1Rank <= updatedPlayers.length) {
-    const newGameResults = [...updatedPlayers[player1Rank - 1].gameResults];
-    newGameResults[currentError.round] = correctedString + "_";
-    updatedPlayers[player1Rank - 1].gameResults = newGameResults;
-  }
-
-  // Update player 2
-  if (player2Rank > 0 && player2Rank <= updatedPlayers.length) {
-    const newGameResults = [...updatedPlayers[player2Rank - 1].gameResults];
-    newGameResults[currentError.round] = correctedString + "_";
-    updatedPlayers[player2Rank - 1].gameResults = newGameResults;
-  }
-
-  setPendingPlayers(updatedPlayers);
-  setCurrentError(null);
-};
-
-const completeRatingCalculation = () => {
-  const processedPlayers = repopulateGameResults(
-    pendingPlayers,
-    pendingMatches,
-    31,
-  );
-  const calculatedPlayers = calculateRatings(processedPlayers, pendingMatches);
-  setPlayers(calculatedPlayers);
-  localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
-};
-```
-
+  
 ## Error Codes
 
 ### From `string2long()` return values:
@@ -322,6 +256,6 @@ const completeRatingCalculation = () => {
 - Hash table prevents duplicate match entries
 - Only valid entries get "\_" suffix marker
 - Rating calculation uses absolute values of ratings
-- Minimum rating is 0 (no negative ratings)
+- negative ratings mean not eligible for trophies
 - Player ranks must be 1-200
-- Round numbers are 0-indexed (0-30 for 31 rounds)
+
