@@ -88,7 +88,9 @@ export const sortOptions = SORT_OPTIONS;
  * Returns probability of winning for given ratings
  */
 export function formula(myRating: number, opponentsRating: number): number {
-  return 1 / (1 + 10 ** ((Math.abs(opponentsRating) - Math.abs(myRating)) / 400));
+  return (
+    1 / (1 + 10 ** ((Math.abs(opponentsRating) - Math.abs(myRating)) / 400))
+  );
 }
 
 /**
@@ -96,7 +98,7 @@ export function formula(myRating: number, opponentsRating: number): number {
  */
 export function getLadderName(): string {
   const currentPath = window.location.pathname;
-  const lastSlashIndex = currentPath.lastIndexOf('/');
+  const lastSlashIndex = currentPath.lastIndexOf("/");
   return currentPath.substring(lastSlashIndex + 1);
 }
 
@@ -104,7 +106,10 @@ export function getLadderName(): string {
  * VB6 Line: 138-154 - Player array to string conversion
  * Translates player and score arrays to hash string format
  */
-export function entry2string(playersList: number[], scoreList: number[]): string {
+export function entry2string(
+  playersList: number[],
+  scoreList: number[],
+): string {
   // VB6 Line: 140-145 - Swap to ensure correct order
   if (playersList[0] > playersList[1]) {
     const temp = playersList[0];
@@ -119,7 +124,7 @@ export function entry2string(playersList: number[], scoreList: number[]): string
 
   const resultParts: string[] = [
     playersList[0].toString(),
-    ':',
+    ":",
     playersList[1].toString(),
     RESULT_STRING.charAt(scoreList[0]),
   ];
@@ -127,10 +132,10 @@ export function entry2string(playersList: number[], scoreList: number[]): string
     resultParts.push(RESULT_STRING.charAt(scoreList[1]));
   }
   resultParts.push(playersList[3].toString());
-  resultParts.push(':');
+  resultParts.push(":");
   resultParts.push(playersList[4].toString());
 
-  return resultParts.join('');
+  return resultParts.join("");
 }
 
 /**
@@ -141,7 +146,7 @@ export function parseEntry(
   myText: string,
   playersList: number[],
   scoreList: number[],
-  _quickEntryVal: number
+  _quickEntryVal: number,
 ): number {
   // VB6 Line: 167-171 - Reset arrays
   playersList[0] = 0;
@@ -157,7 +162,7 @@ export function parseEntry(
   const results: string[] = [];
   let entry = 0;
   let numOrChar = 1; // 0 = number, 1 = char
-  let entryString = '';
+  let entryString = "";
   let errorNum = 0;
 
   for (let i = 1; i <= strlen; i++) {
@@ -178,9 +183,9 @@ export function parseEntry(
       } else {
         if (myasc === 58) {
           entry++;
-          entryString = '';
+          entryString = "";
           continue;
-        } else if (mychar === 'W' || mychar === 'L' || mychar === 'D') {
+        } else if (mychar === "W" || mychar === "L" || mychar === "D") {
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;
         } else {
@@ -202,7 +207,7 @@ export function parseEntry(
 
       if (numOrChar !== 1) {
         entry++;
-        entryString = '';
+        entryString = "";
       }
     }
   }
@@ -241,7 +246,12 @@ export function parseEntry(
 
   // VB6 Line: 243-270 - Create hash value
   const res = playersList[4];
-  const computedRes = (((((((res * 128) + playersList[3]) * 4) + scoreList[1]) * 4) + scoreList[0]) * 128 + playersList[1]) * 128 + playersList[0];
+  const computedRes =
+    ((((res * 128 + playersList[3]) * 4 + scoreList[1]) * 4 + scoreList[0]) *
+      128 +
+      playersList[1]) *
+      128 +
+    playersList[0];
 
   // VB6 Line: 255-257 - Validate entry
   if (playersList[1] > 0 && playersList[4] === 0) {
@@ -254,7 +264,13 @@ export function parseEntry(
   }
 
   // VB6 Line: 262-270 - Return result
-  if (errorNum !== 0 || playersList[0] === 0 || playersList[3] === 0 || scoreList[0] < 0 || scoreList[1] < 0) {
+  if (
+    errorNum !== 0 ||
+    playersList[0] === 0 ||
+    playersList[3] === 0 ||
+    scoreList[0] < 0 ||
+    scoreList[1] < 0
+  ) {
     return errorNum === 0 ? -3 : -errorNum;
   }
   return computedRes;
@@ -263,7 +279,12 @@ export function parseEntry(
 /**
  * VB6 Line: 156-128 - String to long conversion (wrapper for parseEntry)
  */
-export function string2long(game: string, playersList: number[], scoreList: number[], quickEntryVal: number): number {
+export function string2long(
+  game: string,
+  playersList: number[],
+  scoreList: number[],
+  quickEntryVal: number,
+): number {
   return parseEntry(game, playersList, scoreList, quickEntryVal);
 }
 
@@ -278,23 +299,23 @@ export function long2string(game: number): string {
   // VB6 Line: 111-121 - Extract structured data
   resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
-  resultParts.push(':');
+  resultParts.push(":");
   resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
   resultParts.push(RESULT_STRING.charAt(tempGame % 4));
   tempGame = Math.floor(tempGame / 4);
   const nextChar = RESULT_STRING.charAt(tempGame % 4);
-  if (nextChar !== 'O') {
+  if (nextChar !== "O") {
     resultParts.push(nextChar);
   }
   tempGame = Math.floor(tempGame / 4);
   resultParts.push((tempGame % 128).toString());
   tempGame = Math.floor(tempGame / 128);
-  resultParts.push(':');
+  resultParts.push(":");
   resultParts.push((tempGame % 128).toString());
 
   // VB6 Line: 122-124 - Clean up empty parts
-  const finalResult = resultParts.join('').replace(/ /g, '').replace(':0', '');
+  const finalResult = resultParts.join("").replace(/ /g, "").replace(":0", "");
   return finalResult;
 }
 
@@ -334,7 +355,7 @@ export function hashInitialize(): void {
     }
   }
 
-  hashArray = new Array(2048).fill('');
+  hashArray = new Array(2048).fill("");
   hashIndex = new Array(2048).fill(0);
 }
 
@@ -345,7 +366,11 @@ export let hashIndex: number[] = [];
  * VB6 Line: 328-368 - Data hash function
  * Hash data using string-based XOR method
  */
-export function dataHash(skey: string, sval: string, hashMethod: number): string {
+export function dataHash(
+  skey: string,
+  sval: string,
+  hashMethod: number,
+): string {
   const b = new TextEncoder().encode(skey);
   let lKeyVal = b[0];
 
@@ -365,7 +390,7 @@ export function dataHash(skey: string, sval: string, hashMethod: number): string
       // VB6 Line: 347-350 - Delete entry if requested
       if (hashMethod === 2) {
         hashIndex[i] = 0;
-        hashArray[i] = '';
+        hashArray[i] = "";
       }
       found = true;
     } else if (hashIndex[i] === 0) {
