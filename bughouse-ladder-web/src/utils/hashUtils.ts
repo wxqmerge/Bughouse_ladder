@@ -163,7 +163,11 @@ export function parseEntry(
   let numOrChar = 1; // 0 = number, 1 = char
   let entryString = "";
   let errorNum = 0;
+<<<<<<< HEAD
   let resultIndex = 0; // Track which result slot (0 or 1)
+=======
+  let resultEntry = 0; // Track which result slot we're filling
+>>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
 
   for (let i = 1; i <= strlen; i++) {
     const mychar = myText.substring(i - 1, i);
@@ -187,9 +191,18 @@ export function parseEntry(
           entryString = "";
           continue;
         } else if (mychar === "W" || mychar === "L" || mychar === "D") {
+<<<<<<< HEAD
           // Score character - store in current result slot
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;
+=======
+          // Always store first result at index 0, second at index 1
+          if (results[0]) {
+            resultEntry = 1; // Already have first result
+          } else {
+            resultEntry = 0; // First result
+          }
+>>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
         } else {
           errorNum = 2;
         }
@@ -203,6 +216,7 @@ export function parseEntry(
           errorNum = 9;
           break;
         }
+<<<<<<< HEAD
         entry++;
         entryString = "";
       } else if (numOrChar === 1) {
@@ -213,8 +227,12 @@ export function parseEntry(
       }
 
       if (numOrChar !== 1) {
+=======
+>>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
         entry++;
         entryString = "";
+      } else if (numOrChar === 1) {
+        results[resultEntry] = entryString;
       }
     }
   }
@@ -465,7 +483,16 @@ export function processGameResults(
   const parsedScoreList = [0, 0];
   const matchResults = new Map<
     string,
-    { result: string; playerRank: number }[]
+    {
+      result: string;
+      playerRank: number;
+      player1: number;
+      player2: number;
+      player3: number;
+      player4: number;
+      score1: number;
+      score2: number;
+    }[]
   >();
 
   hashInitialize();
@@ -481,6 +508,14 @@ export function processGameResults(
 
       if (!result || result.trim() === "") continue;
 
+      // Reset parsed arrays for each result
+      parsedPlayersList[0] = 0;
+      parsedPlayersList[1] = 0;
+      parsedPlayersList[3] = 0;
+      parsedPlayersList[4] = 0;
+      parsedScoreList[0] = 0;
+      parsedScoreList[1] = 0;
+
       const hashValue = string2long(result, parsedPlayersList, parsedScoreList);
 
       if (hashValue < 0) {
@@ -488,8 +523,8 @@ export function processGameResults(
         errors.push({
           hashValue,
           player1: parsedPlayersList[0],
-          player2: parsedPlayersList[3],
-          player3: parsedPlayersList[1],
+          player2: parsedPlayersList[1],
+          player3: parsedPlayersList[3],
           player4: parsedPlayersList[4],
           score1: parsedScoreList[0],
           score2: parsedScoreList[1],
@@ -530,7 +565,16 @@ export function processGameResults(
       if (!matchResults.has(key)) {
         matchResults.set(key, []);
       }
-      matchResults.get(key)!.push({ result, playerRank: player.rank });
+      matchResults.get(key)!.push({
+        result,
+        playerRank: player.rank,
+        player1: parsedPlayersList[0],
+        player2: parsedPlayersList[1],
+        player3: parsedPlayersList[3],
+        player4: parsedPlayersList[4],
+        score1: parsedScoreList[0],
+        score2: parsedScoreList[1],
+      });
 
       processedPairs.add(hashValue);
 
@@ -538,10 +582,10 @@ export function processGameResults(
       dataHash(_matchKey, result, 0);
 
       results.push({
-        player1: player1Rank,
-        player2: player2Rank,
-        player3: -1,
-        player4: -1,
+        player1: parsedPlayersList[0],
+        player2: parsedPlayersList[1],
+        player3: parsedPlayersList[3],
+        player4: parsedPlayersList[4],
         score1: player1Score,
         score2: player2Score,
       });
@@ -559,12 +603,12 @@ export function processGameResults(
         errorCount++;
         errors.push({
           hashValue: 0,
-          player1: entry.playerRank,
-          player2: 0,
-          player3: 0,
-          player4: 0,
-          score1: 0,
-          score2: 0,
+          player1: entry.player1,
+          player2: entry.player2,
+          player3: entry.player3,
+          player4: entry.player4,
+          score1: entry.score1,
+          score2: entry.score2,
           resultIndex: 0,
           isValid: false,
           error: 10,
