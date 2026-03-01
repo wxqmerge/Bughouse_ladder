@@ -163,11 +163,7 @@ export function parseEntry(
   let numOrChar = 1; // 0 = number, 1 = char
   let entryString = "";
   let errorNum = 0;
-<<<<<<< HEAD
   let resultIndex = 0; // Track which result slot (0 or 1)
-=======
-  let resultEntry = 0; // Track which result slot we're filling
->>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
 
   for (let i = 1; i <= strlen; i++) {
     const mychar = myText.substring(i - 1, i);
@@ -191,18 +187,9 @@ export function parseEntry(
           entryString = "";
           continue;
         } else if (mychar === "W" || mychar === "L" || mychar === "D") {
-<<<<<<< HEAD
           // Score character - store in current result slot
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;
-=======
-          // Always store first result at index 0, second at index 1
-          if (results[0]) {
-            resultEntry = 1; // Already have first result
-          } else {
-            resultEntry = 0; // First result
-          }
->>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
         } else {
           errorNum = 2;
         }
@@ -216,7 +203,6 @@ export function parseEntry(
           errorNum = 9;
           break;
         }
-<<<<<<< HEAD
         entry++;
         entryString = "";
       } else if (numOrChar === 1) {
@@ -227,12 +213,9 @@ export function parseEntry(
       }
 
       if (numOrChar !== 1) {
-=======
->>>>>>> d3e4606b58aeb9bb437e8e0188abc97580405d0e
         entry++;
         entryString = "";
       } else if (numOrChar === 1) {
-        results[resultEntry] = entryString;
       }
     }
   }
@@ -240,8 +223,6 @@ export function parseEntry(
   // VB6 Line: 223-228 - Process scores
   scoreList[0] = RESULT_STRING.indexOf(results[0]) - 1;
   scoreList[1] = results[1] ? RESULT_STRING.indexOf(results[1]) - 1 : 0;
-  if (scoreList[0] < 0) scoreList[0] = 0;
-  if (scoreList[1] < 0) scoreList[1] = 0;
 
   // VB6 Line: 229-245 - Normalize player order
   if (playersList[1] > 0) {
