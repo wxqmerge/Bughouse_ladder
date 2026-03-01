@@ -194,7 +194,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         let cols = line.split('\t');
         if(cols[0].length >2){
         // if (line.startsWith('\t')){
-             console.log('adding leading space to line:', line);
+//             console.log('adding leading space to line:', line);
                cols.unshift(' ');    
          }
         //if (parts.length < 14) continue;  // Need at least columns 0-13
@@ -320,15 +320,18 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         gameResults.forEach((result, index) => {
           if (result && result.match(/[WDL]/i)) {
             const opponent = playersCopy[index];
-            if (opponent && opponent.rating > 0) {
-              const expectedScoreForGame = 1 / (1 + Math.pow(10, (opponent.rating - ratingA) / 400));
+            if (opponent && opponent.rating != 0) {
+              const expectedScoreForGame = 1 / (1 + Math.pow(10, (Math.abs(opponent.rating) - Math.abs(ratingA)) / 400));
               expectedScore += expectedScoreForGame;
               totalGames++;
+              console.log(`Game ${index + 1}: ratingA=${ratingA}, opponent.rating=${opponent.rating}, expectedScoreForGame=${expectedScoreForGame.toFixed(4)}`);
             }
           }
         });
 
-        return totalGames > 0 ? expectedScore / totalGames : 0;
+        const result = totalGames > 0 ? expectedScore / totalGames : 0;
+        console.log(`calculateExpectedScore: ratingA=${ratingA}, totalGames=${totalGames}, expectedScore=${expectedScore.toFixed(4)}, result=${result.toFixed(4)}`);
+        return result;
       };
 
       const calculateNewRating = (oldRating: number, actualScore: number, expectedScore: number, EloK: number) => {
