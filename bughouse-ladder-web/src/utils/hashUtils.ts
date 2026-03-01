@@ -426,9 +426,10 @@ export interface ValidationResult {
 export interface MatchData {
   player1: number;
   player2: number;
+  player3: number;
+  player4: number;
   score1: number;
   score2: number;
-  round: number;
 }
 
 export interface ProcessResult {
@@ -524,9 +525,10 @@ export function processGameResults(
       results.push({
         player1: player1Rank,
         player2: player2Rank,
+        player3: -1,
+        player4: -1,
         score1: player1Score,
         score2: player2Score,
-        round: round,
       });
     }
   }
@@ -562,36 +564,6 @@ export function processGameResults(
     errors,
   };
 }
-
-export interface MatchData {
-  player1: number;
-  player2: number;
-  score1: number;
-  score2: number;
-  round: number;
-}
-
-export interface ProcessResult {
-  matches: MatchData[];
-  hasErrors: boolean;
-  errorCount: number;
-}
-
-/**
- * Process all game results, validate them, and return valid matches
- */
-
-export interface MatchData {
-  player1: number;
-  player2: number;
-  score1: number;
-  score2: number;
-  round: number;
-}
-
-/**
- * Process all game results, validate them, and return valid matches
- */
 
 /**
  * Calculate Elo ratings based on game results
@@ -657,6 +629,7 @@ export function repopulateGameResults(
     gameResults: new Array(numRounds).fill(null),
   }));
 
+  let resultIndex = 0;
   for (const match of matches) {
     const p1Index = match.player1 - 1;
     const p2Index = match.player2 - 1;
@@ -673,11 +646,12 @@ export function repopulateGameResults(
     const result2 = resultCodeToString(match.score2);
 
     if (result1) {
-      p1.gameResults[match.round] = result1 + "_";
+      p1.gameResults[resultIndex] = result1 + "_";
     }
     if (result2) {
-      p2.gameResults[match.round] = result2 + "_";
+      p2.gameResults[resultIndex] = result2 + "_";
     }
+    resultIndex++;
   }
 
   return playersCopy;

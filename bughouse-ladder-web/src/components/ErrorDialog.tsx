@@ -99,15 +99,6 @@ export default function ErrorDialog({
               marginBottom: "0.5rem",
             }}
           >
-            <strong>Round:</strong> {error.round + 1}
-          </p>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              marginBottom: "0.5rem",
-            }}
-          >
             <strong>First Player:</strong>{" "}
             {player1 ? player1.firstName : "Unknown"}
           </p>
