@@ -146,7 +146,6 @@ export function parseEntry(
   myText: string,
   playersList: number[],
   scoreList: number[],
-  _quickEntryVal: number,
 ): number {
   // VB6 Line: 167-171 - Reset arrays
   playersList[0] = 0;
@@ -283,9 +282,8 @@ export function string2long(
   game: string,
   playersList: number[],
   scoreList: number[],
-  quickEntryVal: number,
 ): number {
-  return parseEntry(game, playersList, scoreList, quickEntryVal);
+  return parseEntry(game, playersList, scoreList);
 }
 
 /**
@@ -407,4 +405,250 @@ export function dataHash(
   }
 
   return hashArray[i];
+}
+
+/**
+ * Process game results from all players and calculate ratings
+ * VB6-inspired implementation with hash table validation
+ */
+export interface ValidationResult {
+  hashValue: number;
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+  isValid: boolean;
+  error: number;
+  originalString: string;
+}
+
+export interface MatchData {
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+}
+
+export interface ProcessResult {
+  matches: MatchData[];
+  hasErrors: boolean;
+  errorCount: number;
+  errors: ValidationResult[];
+}
+
+export interface MatchData {
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+}
+
+export interface ProcessResult {
+  matches: MatchData[];
+  hasErrors: boolean;
+  errorCount: number;
+}
+
+/**
+ * Process all game results, validate them, and return valid matches
+ */
+export function processGameResults(
+  playersList: PlayerData[],
+  numRounds: number = 31,
+): ProcessResult {
+  const results: MatchData[] = [];
+  const errors: ValidationResult[] = [];
+  const parsedPlayersList = [0, 0, 0, 0, 0];
+  const parsedScoreList = [0, 0];
+
+  hashInitialize();
+
+  let errorCount = 0;
+
+  for (let round = 0; round < numRounds; round++) {
+    const processedPairs = new Set<number>();
+
+    for (let i = 0; i < playersList.length; i++) {
+      const player = playersList[i];
+      const result = player.gameResults?.[round] || null;
+
+      if (!result || result.trim() === "") continue;
+
+      const hashValue = string2long(result, parsedPlayersList, parsedScoreList);
+
+      if (hashValue < 0) {
+        errorCount++;
+        errors.push({
+          hashValue,
+          player1: parsedPlayersList[0],
+          player2: parsedPlayersList[3],
+          score1: parsedScoreList[0],
+          score2: parsedScoreList[1],
+          round,
+          isValid: false,
+          error: -hashValue,
+          originalString: result,
+        });
+        continue;
+      }
+
+      if (processedPairs.has(hashValue)) continue;
+
+      const player1Rank = parsedPlayersList[0];
+      const player2Rank = parsedPlayersList[3];
+      const player1Score = parsedScoreList[0];
+      const player2Score = parsedScoreList[1];
+
+      if (player1Rank <= 0 || player2Rank <= 0) {
+        errorCount++;
+        continue;
+      }
+
+      if (player1Rank > 200 || player2Rank > 200) {
+        errorCount++;
+        continue;
+      }
+
+      const player1 = playersList[player1Rank - 1];
+      const player2 = playersList[player2Rank - 1];
+
+      if (!player1 || !player2) {
+        errorCount++;
+        continue;
+      }
+
+      processedPairs.add(hashValue);
+
+      const key = `${hashValue}_${round}`;
+      dataHash(key, result, 0);
+
+      results.push({
+        player1: player1Rank,
+        player2: player2Rank,
+        score1: player1Score,
+        score2: player2Score,
+        round: round,
+      });
+    }
+  }
+
+  return {
+    matches: results,
+    hasErrors: errorCount > 0,
+    errorCount: errorCount,
+    errors,
+  };
+}
+
+export interface MatchData {
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+}
+
+/**
+ * Process all game results, validate them, and return valid matches
+ */
+
+/**
+ * Calculate Elo ratings based on game results
+ */
+export function calculateRatings(
+  playersList: PlayerData[],
+  matches: MatchData[],
+): PlayerData[] {
+  const EloK = 20;
+  const playersCopy = playersList.map((p) => ({ ...p }));
+
+  for (const match of matches) {
+    const p1Index = match.player1 - 1;
+    const p2Index = match.player2 - 1;
+
+    if (p1Index < 0 || p1Index >= playersCopy.length) continue;
+    if (p2Index < 0 || p2Index >= playersCopy.length) continue;
+
+    const p1 = playersCopy[p1Index];
+    const p2 = playersCopy[p2Index];
+
+    if (!p1 || !p2) continue;
+
+    const p1Rating = Math.abs(p1.rating);
+    const p2Rating = Math.abs(p2.rating);
+
+    if (p1Rating === 0 && p2Rating === 0) continue;
+
+    const expectedP1 = formula(p1Rating, p2Rating);
+    const expectedP2 = formula(p2Rating, p1Rating);
+
+    let actualP1 = 0.5;
+    let actualP2 = 0.5;
+
+    if (match.score1 === 1) {
+      actualP1 = 1;
+      actualP2 = 0;
+    } else if (match.score1 === 3) {
+      actualP1 = 0;
+      actualP2 = 1;
+    }
+
+    const p1NewRating = Math.round(p1Rating + EloK * (actualP1 - expectedP1));
+    const p2NewRating = Math.round(p2Rating + EloK * (actualP2 - expectedP2));
+
+    p1.nRating = Math.max(0, p1NewRating);
+    p2.nRating = Math.max(0, p2NewRating);
+  }
+
+  return playersCopy;
+}
+
+/**
+ * Repopulate game results from validated matches
+ */
+export function repopulateGameResults(
+  playersList: PlayerData[],
+  matches: MatchData[],
+  numRounds: number = 31,
+): PlayerData[] {
+  const playersCopy = playersList.map((p) => ({
+    ...p,
+    gameResults: new Array(numRounds).fill(null),
+  }));
+
+  for (const match of matches) {
+    const p1Index = match.player1 - 1;
+    const p2Index = match.player2 - 1;
+
+    if (p1Index < 0 || p1Index >= playersCopy.length) continue;
+    if (p2Index < 0 || p2Index >= playersCopy.length) continue;
+
+    const p1 = playersCopy[p1Index];
+    const p2 = playersCopy[p2Index];
+
+    if (!p1 || !p2) continue;
+
+    const result1 = resultCodeToString(match.score1);
+    const result2 = resultCodeToString(match.score2);
+
+    if (result1) {
+      p1.gameResults[match.round] = result1 + "_";
+    }
+    if (result2) {
+      p2.gameResults[match.round] = result2 + "_";
+    }
+  }
+
+  return playersCopy;
+}
+
+function resultCodeToString(code: number): string {
+  if (code === 0) return "O";
+  if (code === 1) return "L";
+  if (code === 2) return "D";
+  if (code === 3) return "W";
+  return "O";
 }

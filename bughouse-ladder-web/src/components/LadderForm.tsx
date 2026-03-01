@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import type { PlayerData } from "../utils/hashUtils";
+import type { PlayerData, ValidationResult } from "../utils/hashUtils";
+import {
+  processGameResults,
+  calculateRatings,
+  repopulateGameResults,
+  string2long,
+} from "../utils/hashUtils";
+import ErrorDialog from "./ErrorDialog";
 import { Settings as SettingsIcon, Play as PlayIcon } from "lucide-react";
 import "../css/index.css";
 
@@ -19,6 +26,13 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     "Bughouse Chess Ladder",
   );
   const [lastFile, setLastFile] = useState<File | null>(null);
+  const [currentError, setCurrentError] = useState<ValidationResult | null>(
+    null,
+  );
+  const [pendingPlayers, setPendingPlayers] = useState<PlayerData[] | null>(
+    null,
+  );
+  const [pendingMatches, setPendingMatches] = useState<any[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // VB6 Line: 894 - Initialize with sample data
@@ -293,96 +307,101 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   };
 
   const recalculateRatings = () => {
-    const playersCopy = [...players];
-    const EloK = 20;
+    if (players.length === 0) {
+      console.error("No players to process");
+      return;
+    }
 
-    const calculateActualScore = (gameResults: (string | null)[]) => {
-      let score = 0;
-      let totalGames = 0;
+    console.log("Starting rating calculation with VB6-style validation");
+    console.log(`Processing ${players.length} players`);
 
-      gameResults.forEach((result) => {
-        if (result && result.match(/[WDL]/i)) {
-          totalGames++;
-          const upperResult = result.toUpperCase();
-          if (upperResult === "W") {
-            score += 1;
-          } else if (upperResult === "L") {
-            score += 0;
-          } else if (upperResult === "D") {
-            score += 0.5;
-          }
-        }
-      });
+    const { matches, hasErrors, errorCount, errors } = processGameResults(
+      players,
+      31,
+    );
+    console.log(`Validated ${matches.length} matches, errors: ${errorCount}`);
 
-      return totalGames > 0 ? score / totalGames : 0;
-    };
+    if (hasErrors && errors.length > 0) {
+      console.warn("Errors detected. Opening dialog for correction.");
+      setPendingPlayers(players);
+      setPendingMatches(matches);
+      setCurrentError(errors[0]);
+    } else {
+      console.log("No errors. Clearing and repopulating game results.");
+      const processedPlayers = repopulateGameResults(players, matches, 31);
+      const calculatedPlayers = calculateRatings(processedPlayers, matches);
+      setPlayers(calculatedPlayers);
+      localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
+      console.log("Rating calculation complete");
+    }
+  };
 
-    const calculateExpectedScore = (
-      ratingA: number,
-      playersCopy: PlayerData[],
-      gameResults: (string | null)[],
-    ) => {
-      let expectedScore = 0;
-      let totalGames = 0;
+  const handleCorrectionSubmit = (correctedString: string) => {
+    if (!pendingPlayers || !pendingMatches || !currentError) return;
 
-      gameResults.forEach((result, index) => {
-        if (result && result.match(/[WDL]/i)) {
-          const opponent = playersCopy[index];
-          if (opponent && opponent.rating != 0) {
-            const expectedScoreForGame =
-              1 /
-              (1 +
-                Math.pow(
-                  10,
-                  (Math.abs(opponent.rating) - Math.abs(ratingA)) / 400,
-                ));
-            expectedScore += expectedScoreForGame;
-            totalGames++;
-            console.log(
-              `Game ${index + 1}: ratingA=${ratingA}, opponent.rating=${opponent.rating}, expectedScoreForGame=${expectedScoreForGame.toFixed(4)}`,
-            );
-          }
-        }
-      });
+    const parsedPlayersList = [0, 0, 0, 0, 0];
+    const parsedScoreList = [0, 0];
+    const hashValue = string2long(
+      correctedString,
+      parsedPlayersList,
+      parsedScoreList,
+    );
 
-      const result = totalGames > 0 ? expectedScore / totalGames : 0;
-      console.log(
-        `calculateExpectedScore: ratingA=${ratingA}, totalGames=${totalGames}, expectedScore=${expectedScore.toFixed(4)}, result=${result.toFixed(4)}`,
-      );
-      return result;
-    };
+    if (hashValue < 0) {
+      alert(`Invalid format. Error code: ${Math.abs(hashValue)}`);
+      return;
+    }
 
-    const calculateNewRating = (
-      oldRating: number,
-      actualScore: number,
-      expectedScore: number,
-      EloK: number,
-    ) => {
-      const newRating = Math.round(
-        oldRating + EloK * (actualScore - expectedScore),
-      );
-      return Math.max(0, newRating);
-    };
+    const player1Rank = parsedPlayersList[0];
+    const player2Rank = parsedPlayersList[3];
 
-    playersCopy.forEach((player) => {
-      const gameResults = player.gameResults || new Array(31).fill(null);
-      const actualScore = calculateActualScore(gameResults);
-      const expectedScore = calculateExpectedScore(
-        player.rating,
-        playersCopy,
-        gameResults,
-      );
-      const newRating = calculateNewRating(
-        player.rating,
-        actualScore,
-        expectedScore,
-        EloK,
-      );
-      player.nRating = newRating;
-    });
+    const updatedPlayers = pendingPlayers.map((p) => ({ ...p }));
 
-    setPlayers(playersCopy);
-    localStorage.setItem("ladder_players", JSON.stringify(playersCopy));
+    if (player1Rank > 0 && player1Rank <= updatedPlayers.length) {
+      const player1 = updatedPlayers[player1Rank - 1];
+      if (player1) {
+        const newGameResults = [...player1.gameResults];
+        newGameResults[currentError.round] = correctedString + "_";
+        player1.gameResults = newGameResults;
+      }
+    }
+
+    if (player2Rank > 0 && player2Rank <= updatedPlayers.length) {
+      const player2 = updatedPlayers[player2Rank - 1];
+      if (player2) {
+        const newGameResults = [...player2.gameResults];
+        newGameResults[currentError.round] = correctedString + "_";
+        player2.gameResults = newGameResults;
+      }
+    }
+
+    setPendingPlayers(updatedPlayers);
+    setCurrentError(null);
+  };
+
+  const handleCorrectionCancel = () => {
+    setCurrentError(null);
+    setPendingPlayers(null);
+    setPendingMatches(null);
+  };
+
+  const completeRatingCalculation = () => {
+    if (!pendingPlayers || !pendingMatches) return;
+
+    const processedPlayers = repopulateGameResults(
+      pendingPlayers,
+      pendingMatches,
+      31,
+    );
+    const calculatedPlayers = calculateRatings(
+      processedPlayers,
+      pendingMatches,
+    );
+    setPlayers(calculatedPlayers);
+    localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
+    setPendingPlayers(null);
+    setPendingMatches(null);
+    console.log("Rating calculation complete");
   };
 
   const Chess_Compare = (
@@ -1065,6 +1084,43 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
           </tbody>
         </table>
       </div>
+      {currentError && (
+        <ErrorDialog
+          error={currentError}
+          players={players}
+          onClose={handleCorrectionCancel}
+          onSubmit={handleCorrectionSubmit}
+        />
+      )}
+      {currentError && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "1rem",
+            right: "1rem",
+            backgroundColor: "#f59e0b",
+            color: "white",
+            padding: "1rem",
+            borderRadius: "0.5rem",
+            zIndex: 999,
+          }}
+        >
+          <button
+            onClick={completeRatingCalculation}
+            style={{
+              background: "white",
+              color: "#f59e0b",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "0.25rem",
+              cursor: "pointer",
+              fontWeight: "600",
+            }}
+          >
+            Continue with corrections
+          </button>
+        </div>
+      )}
     </div>
   );
 }
