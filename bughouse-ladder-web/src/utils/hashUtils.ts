@@ -438,20 +438,6 @@ export interface ProcessResult {
   errors: ValidationResult[];
 }
 
-export interface MatchData {
-  player1: number;
-  player2: number;
-  score1: number;
-  score2: number;
-  round: number;
-}
-
-export interface ProcessResult {
-  matches: MatchData[];
-  hasErrors: boolean;
-  errorCount: number;
-}
-
 /**
  * Process all game results, validate them, and return valid matches
  */
@@ -463,6 +449,10 @@ export function processGameResults(
   const errors: ValidationResult[] = [];
   const parsedPlayersList = [0, 0, 0, 0, 0];
   const parsedScoreList = [0, 0];
+  const matchResults = new Map<
+    string,
+    { result: string; playerRank: number }[]
+  >();
 
   hashInitialize();
 
@@ -520,10 +510,16 @@ export function processGameResults(
         continue;
       }
 
+      const key = `${player1Rank}-${player2Rank}`;
+      if (!matchResults.has(key)) {
+        matchResults.set(key, []);
+      }
+      matchResults.get(key)!.push({ result, playerRank: player.rank });
+
       processedPairs.add(hashValue);
 
-      const key = `${hashValue}_${round}`;
-      dataHash(key, result, 0);
+      const _matchKey = `${hashValue}_${round}`;
+      dataHash(_matchKey, result, 0);
 
       results.push({
         player1: player1Rank,
@@ -535,6 +531,30 @@ export function processGameResults(
     }
   }
 
+  for (const [_, entries] of matchResults.entries()) {
+    if (entries.length < 2) continue;
+
+    const allSame = entries.every(
+      (e, i) => i === 0 || e.result === entries[0].result,
+    );
+    if (!allSame) {
+      for (const entry of entries) {
+        errorCount++;
+        errors.push({
+          hashValue: 0,
+          player1: entry.playerRank,
+          player2: 0,
+          score1: 0,
+          score2: 0,
+          round: 0,
+          isValid: false,
+          error: 10,
+          originalString: entry.result,
+        });
+      }
+    }
+  }
+
   return {
     matches: results,
     hasErrors: errorCount > 0,
@@ -542,6 +562,24 @@ export function processGameResults(
     errors,
   };
 }
+
+export interface MatchData {
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+}
+
+export interface ProcessResult {
+  matches: MatchData[];
+  hasErrors: boolean;
+  errorCount: number;
+}
+
+/**
+ * Process all game results, validate them, and return valid matches
+ */
 
 export interface MatchData {
   player1: number;

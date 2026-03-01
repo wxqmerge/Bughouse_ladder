@@ -23,6 +23,21 @@ const { matches, hasErrors, errorCount, errors } = processGameResults(
 );
 ```
 
+**Conflict Detection:**
+
+The parser detects player-player conflicts by:
+
+1. **Grouping results by player pair**: All results for the same match are tracked using a key like `"1-2"` for players 1 and 2
+2. **Comparing result strings**: If Player 1 has `"1w2"` and Player 2 has `"1l2"`, these represent the same match but with different outcomes
+3. **Flagging all conflicting entries**: When a conflict is detected, all entries for that match are marked as errors (error code 10)
+4. **Example**:
+   - John (rank 1): `"1w2"` = "I won against player 2"
+   - Jane (rank 2): `"1l2"` = "Player 1 lost to player 2"
+   - **Conflict**: These are the same match (1 vs 2) with contradictory results
+   - **Result**: Both entries flagged as errors requiring correction
+
+The conflict detection ensures data integrity by requiring both players to agree on match results before rating calculation proceeds.
+
 **Validation Steps:**
 
 1. Initialize hash table with `hashInitialize()`
@@ -32,14 +47,16 @@ const { matches, hasErrors, errorCount, errors } = processGameResults(
    - Empty strings are skipped (not errors)
    - Invalid entries return negative hash value → counted as error
    - Valid entries added to hash table via `dataHash()`
-4. Track duplicate matches using hash value as key
-5. Return `ProcessResult` with matches, errors, and error details
+4. Track results by player pair (e.g., "1-2" for players 1 and 2)
+5. Detect conflicts when different players report different results for same match
+6. Return `ProcessResult` with matches, errors, and error details
 
 **Error Detection:**
 
 - Invalid format (negative hash from `string2long`)
 - Invalid player ranks (≤0 or >200)
 - Missing player data
+- **Player-player conflicts**: When two players have different result strings for the same match (e.g., John says "1w2" but Jane says "1l2")
 
 ### 3. Error Handling
 
@@ -284,7 +301,7 @@ const completeRatingCalculation = () => {
 
 ## Error Codes
 
-From `string2long()` return values:
+### From `string2long()` return values:
 
 - `-1`: Invalid underscore placement
 - `-2`: Invalid character
@@ -292,6 +309,12 @@ From `string2long()` return values:
 - `-4`: Same player vs themselves
 - `-7`: Invalid player 2 rank
 - `-9`: Player rank exceeds maximum (200)
+
+### From conflict detection:
+
+- `10`: **Player-player conflict** - Two players report different results for the same match
+  - Example: Player 1 says `"1w2"` (won) but Player 2 says `"1l2"` (lost)
+  - Both entries are flagged as errors requiring user correction
 
 ## Notes
 
