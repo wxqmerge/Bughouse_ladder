@@ -112,6 +112,30 @@ export default function ErrorDialog({
             <strong>Second Player:</strong>{" "}
             {player2 ? player2.firstName : "Unknown"}
           </p>
+          {error.player3 > 0 && (
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#6b7280",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <strong>Third Player:</strong>{" "}
+              {players[error.player3 - 1]?.firstName || "Unknown"}
+            </p>
+          )}
+          {error.player4 > 0 && (
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#6b7280",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <strong>Fourth Player:</strong>{" "}
+              {players[error.player4 - 1]?.firstName || "Unknown"}
+            </p>
+          )}
           <p
             style={{
               fontSize: "0.875rem",
@@ -222,11 +246,15 @@ export default function ErrorDialog({
             color: "#0369a1",
           }}
         >
-          <strong>Format:</strong> Player1:Player2[Score]
+          <strong>Format:</strong>
           <br />
-          Scores: W (win), L (loss), D (draw), O (no result)
+          2-player, 1 result: `2w3` (player 2 vs 3, player 2 wins)
           <br />
-          Example: 10:20W means player 10 vs player 20, player 10 won
+          2-player, 2 results: `3wl4` (player 3 vs 4, W then L)
+          <br />
+          4-player, 1 result: `1:2w3:4` (team 1-2 vs 3-4, team 1-2 wins)
+          <br />
+          4-player, 2 results: `1:2wl3:4` (team 1-2 vs 3-4, W then L)
         </div>
       </div>
     </div>

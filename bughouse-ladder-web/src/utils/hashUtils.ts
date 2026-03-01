@@ -415,9 +415,11 @@ export interface ValidationResult {
   hashValue: number;
   player1: number;
   player2: number;
+  player3: number;
+  player4: number;
   score1: number;
   score2: number;
-  round: number;
+  resultIndex: number;
   isValid: boolean;
   error: number;
   originalString: string;
@@ -476,9 +478,11 @@ export function processGameResults(
           hashValue,
           player1: parsedPlayersList[0],
           player2: parsedPlayersList[3],
+          player3: parsedPlayersList[1],
+          player4: parsedPlayersList[4],
           score1: parsedScoreList[0],
           score2: parsedScoreList[1],
-          round,
+          resultIndex: round,
           isValid: false,
           error: -hashValue,
           originalString: result,
@@ -546,9 +550,11 @@ export function processGameResults(
           hashValue: 0,
           player1: entry.playerRank,
           player2: 0,
+          player3: 0,
+          player4: 0,
           score1: 0,
           score2: 0,
-          round: 0,
+          resultIndex: 0,
           isValid: false,
           error: 10,
           originalString: entry.result,
