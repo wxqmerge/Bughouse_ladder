@@ -4,15 +4,20 @@
  */
 
 import { useState, useEffect } from "react";
-import { X, Save, Settings as SettingsIcon, Trash2 } from "lucide-react";
+import { X, Settings as SettingsIcon, Trash2 } from "lucide-react";
 import "../css/index.css";
 
 interface SettingsProps {
   onClose: () => void;
   onReset: () => void;
+  onWalkThroughReports?: () => void;
 }
 
-export default function Settings({ onClose, onReset }: SettingsProps) {
+export default function Settings({
+  onClose,
+  onReset,
+  onWalkThroughReports,
+}: SettingsProps) {
   const [showRatings, setShowRatings] = useState(true);
 
   useEffect(() => {
@@ -118,13 +123,32 @@ export default function Settings({ onClose, onReset }: SettingsProps) {
         </div>
 
         <div style={{ display: "flex", gap: "1rem" }}>
-          <button onClick={onClose} className="btn-secondary">
-            Cancel
-          </button>
-          <button onClick={handleSave} className="btn">
-            <Save size={16} className="btn-icon" /> Save
-          </button>
+          <button onClick={onClose}>Cancel</button>
+          <button onClick={handleSave}>Save</button>
         </div>
+
+        {onWalkThroughReports && (
+          <button
+            onClick={() => {
+              onClose();
+              onWalkThroughReports();
+            }}
+            style={{
+              width: "100%",
+              marginTop: "1rem",
+              padding: "0.75rem",
+              backgroundColor: "#f59e0b",
+              color: "white",
+              border: "none",
+              borderRadius: "0.25rem",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+            }}
+          >
+            Walk Through Reports
+          </button>
+        )}
 
         <div
           style={{

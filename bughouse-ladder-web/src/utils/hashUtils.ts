@@ -706,3 +706,17 @@ function resultCodeToString(code: number): string {
   if (code === 3) return "W";
   return "O";
 }
+
+export const ERROR_MESSAGES: Record<number, string> = {
+  1: "Invalid format",
+  2: "Invalid character",
+  3: "Incomplete entry",
+  4: "Duplicate players",
+  7: "Missing player 4",
+  9: "Player rank exceeds 200",
+  10: "Conflicting results - players disagree on outcome",
+};
+
+export function getValidationErrorMessage(errorCode: number): string {
+  return ERROR_MESSAGES[errorCode] || "Unknown error";
+}

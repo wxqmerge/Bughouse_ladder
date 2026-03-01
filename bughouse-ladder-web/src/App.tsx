@@ -6,6 +6,7 @@ import "./css/index.css";
 
 function App() {
   const [showSettings, setShowSettings] = useState(false);
+  const [triggerWalkthrough, setTriggerWalkthrough] = useState(false);
 
   const handleReset = () => {
     const samplePlayers = loadSampleData();
@@ -14,13 +15,22 @@ function App() {
     window.location.reload();
   };
 
+  const handleWalkThroughReports = () => {
+    setTriggerWalkthrough(true);
+  };
+
   return (
     <>
-      <LadderForm setShowSettings={setShowSettings} />
+      <LadderForm
+        setShowSettings={setShowSettings}
+        triggerWalkthrough={triggerWalkthrough}
+        setTriggerWalkthrough={setTriggerWalkthrough}
+      />
       {showSettings && (
         <Settings
           onClose={() => setShowSettings(false)}
           onReset={handleReset}
+          onWalkThroughReports={handleWalkThroughReports}
         />
       )}
     </>

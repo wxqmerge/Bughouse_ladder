@@ -1,11 +1,34 @@
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { ValidationResult, PlayerData } from "../utils/hashUtils";
+import { string2long } from "../utils/hashUtils";
 
 interface ErrorDialogProps {
   error: ValidationResult | null;
   players: PlayerData[];
   onClose: () => void;
   onSubmit: (correctedString: string) => void;
+  mode: "error-correction" | "walkthrough" | "game-entry";
+  walkthroughErrors?: ValidationResult[];
+  walkthroughIndex?: number;
+  onWalkthroughNext?: () => void;
+  onWalkthroughPrev?: () => void;
+  entryCell?: { playerRank: number; round: number };
+  existingValue?: string;
+}
+
+const ERROR_MESSAGES: Record<number, string> = {
+  1: "Invalid format",
+  2: "Invalid character",
+  3: "Incomplete entry",
+  4: "Duplicate players",
+  7: "Missing player 4",
+  9: "Player rank exceeds 200",
+  10: "Conflicting results - players disagree on outcome",
+};
+
+function getValidationErrorMessage(errorCode: number): string {
+  return ERROR_MESSAGES[errorCode] || "Unknown error";
 }
 
 export default function ErrorDialog({
@@ -13,24 +36,84 @@ export default function ErrorDialog({
   players,
   onClose,
   onSubmit,
+  mode,
+  walkthroughErrors,
+  walkthroughIndex,
+  onWalkthroughNext,
+  onWalkthroughPrev,
+  entryCell,
+  existingValue,
 }: ErrorDialogProps) {
-  if (!error) return null;
+  const [correctedResult, setCorrectedResult] = useState<string>("");
+  const [parseStatus, setParseStatus] = useState<{
+    isValid: boolean;
+    error?: number;
+    message?: string;
+  } | null>(null);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (existingValue) {
+      setCorrectedResult(existingValue);
+    } else {
+      setCorrectedResult("");
+    }
+  }, [existingValue, mode]);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (mode !== "game-entry") {
+      setParseStatus(null);
+      return;
+    }
+
+    const input = correctedResult;
+    if (!input.trim()) {
+      setParseStatus(null);
+      return;
+    }
+
+    const parsedPlayersList = [0, 0, 0, 0, 0];
+    const parsedScoreList = [0, 0];
+    const hashValue = string2long(input, parsedPlayersList, parsedScoreList);
+
+    if (hashValue < 0) {
+      setParseStatus({
+        isValid: false,
+        error: Math.abs(hashValue),
+        message: getValidationErrorMessage(Math.abs(hashValue)),
+      });
+    } else {
+      setParseStatus({ isValid: true });
+    }
+  }, [correctedResult, mode]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const player1 =
-    error.player1 > 0 && error.player1 <= players.length
+    error && error.player1 > 0 && error.player1 <= players.length
       ? players[error.player1 - 1]
       : null;
   const player2 =
-    error.player2 > 0 && error.player2 <= players.length
+    error && error.player2 > 0 && error.player2 <= players.length
       ? players[error.player2 - 1]
       : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const correctedString = formData.get("correctedResult") as string;
-    onSubmit(correctedString);
+    onSubmit(correctedResult);
   };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCorrectedResult(e.target.value);
+  };
+
+  const isWalkthrough = mode === "walkthrough";
+  const isGameEntry = mode === "game-entry";
+
+  const displayError = error;
+  const displayIndex = walkthroughIndex ?? 0;
+  const displayTotal = walkthroughErrors?.length ?? 1;
+  const displayCell = entryCell ?? { playerRank: 0, round: 0 };
 
   return (
     <div
@@ -70,10 +153,18 @@ export default function ErrorDialog({
             style={{
               fontSize: "1.25rem",
               fontWeight: "600",
-              color: "#ef4444",
+              color: isGameEntry
+                ? "#3b82f6"
+                : isWalkthrough
+                  ? "#f59e0b"
+                  : "#ef4444",
             }}
           >
-            Validation Error
+            {isGameEntry
+              ? "Edit Game Result"
+              : isWalkthrough
+                ? `Report Walkthrough - Error ${displayIndex + 1} of ${displayTotal}`
+                : "Validation Error"}
           </h2>
           <button
             onClick={onClose}
@@ -91,28 +182,8 @@ export default function ErrorDialog({
           </button>
         </div>
 
-        <div style={{ marginBottom: "1rem" }}>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <strong>First Player:</strong>{" "}
-            {player1 ? player1.firstName : "Unknown"}
-          </p>
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <strong>Second Player:</strong>{" "}
-            {player2 ? player2.firstName : "Unknown"}
-          </p>
-          {error.player3 > 0 && (
+        {isGameEntry && (
+          <div style={{ marginBottom: "1rem" }}>
             <p
               style={{
                 fontSize: "0.875rem",
@@ -120,11 +191,16 @@ export default function ErrorDialog({
                 marginBottom: "0.5rem",
               }}
             >
-              <strong>Third Player:</strong>{" "}
-              {players[error.player3 - 1]?.firstName || "Unknown"}
+              <strong>Editing:</strong> Round {displayCell.round + 1} for{" "}
+              {entryCell && player1
+                ? player1.firstName + " " + player1.lastName
+                : "Unknown"}
             </p>
-          )}
-          {error.player4 > 0 && (
+          </div>
+        )}
+
+        {!isGameEntry && displayError && (
+          <div style={{ marginBottom: "1rem" }}>
             <p
               style={{
                 fontSize: "0.875rem",
@@ -132,44 +208,76 @@ export default function ErrorDialog({
                 marginBottom: "0.5rem",
               }}
             >
-              <strong>Fourth Player:</strong>{" "}
-              {players[error.player4 - 1]?.firstName || "Unknown"}
+              <strong>First Player:</strong>{" "}
+              {player1 ? player1.firstName : "Unknown"}
             </p>
-          )}
-          <p
-            style={{
-              fontSize: "0.875rem",
-              color: "#6b7280",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <strong>Original String:</strong>{" "}
-            <code
-              style={{
-                backgroundColor: "#f3f4f6",
-                padding: "0.25rem 0.5rem",
-                borderRadius: "0.25rem",
-                fontSize: "0.75rem",
-              }}
-            >
-              {error.originalString || "(empty)"}
-            </code>
-          </p>
-          {error.error !== undefined && (
             <p
               style={{
                 fontSize: "0.875rem",
-                color: "#ef4444",
+                color: "#6b7280",
                 marginBottom: "0.5rem",
               }}
             >
-              <strong>Error:</strong>{" "}
-              {error.error === 10
-                ? "Conflicting results - players disagree on outcome"
-                : "Invalid result format"}
+              <strong>Second Player:</strong>{" "}
+              {player2 ? player2.firstName : "Unknown"}
             </p>
-          )}
-        </div>
+            {displayError.player3 > 0 && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>Third Player:</strong>{" "}
+                {players[displayError.player3 - 1]?.firstName || "Unknown"}
+              </p>
+            )}
+            {displayError.player4 > 0 && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>Fourth Player:</strong>{" "}
+                {players[displayError.player4 - 1]?.firstName || "Unknown"}
+              </p>
+            )}
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#6b7280",
+                marginBottom: "0.5rem",
+              }}
+            >
+              <strong>Original String:</strong>{" "}
+              <code
+                style={{
+                  backgroundColor: "#f3f4f6",
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: "0.25rem",
+                  fontSize: "0.75rem",
+                }}
+              >
+                {displayError.originalString || "(empty)"}
+              </code>
+            </p>
+            {displayError.error !== undefined && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#ef4444",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>Error:</strong>{" "}
+                {getValidationErrorMessage(displayError.error)}
+              </p>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <label
@@ -182,12 +290,16 @@ export default function ErrorDialog({
               marginBottom: "0.5rem",
             }}
           >
-            Enter corrected result string:
+            {isGameEntry
+              ? "Enter corrected result string:"
+              : "Enter corrected result string:"}
           </label>
           <input
             type="text"
-            name="correctedResult"
             id="correctedResult"
+            name="correctedResult"
+            value={correctedResult}
+            onChange={handleInputChange}
             style={{
               width: "100%",
               padding: "0.5rem",
@@ -196,10 +308,28 @@ export default function ErrorDialog({
               fontSize: "0.875rem",
               marginBottom: "1rem",
               boxSizing: "border-box",
+              borderColor: parseStatus
+                ? parseStatus.isValid
+                  ? "#10b981"
+                  : "#ef4444"
+                : "#d1d5db",
             }}
             placeholder="e.g., 1:2W3:4 for 4-player or 2w3 for 2-player"
             autoFocus
           />
+          {parseStatus && (
+            <p
+              style={{
+                fontSize: "0.75rem",
+                color: parseStatus.isValid ? "#10b981" : "#ef4444",
+                marginBottom: "1rem",
+              }}
+            >
+              {parseStatus.isValid
+                ? "✓ Valid format"
+                : `✗ ${parseStatus.message || "Invalid format"}`}
+            </p>
+          )}
           <div
             style={{
               display: "flex",
@@ -207,6 +337,58 @@ export default function ErrorDialog({
               justifyContent: "flex-end",
             }}
           >
+            {isWalkthrough &&
+              walkthroughIndex !== undefined &&
+              walkthroughErrors && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onWalkthroughPrev}
+                    disabled={walkthroughIndex === 0}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background:
+                        walkthroughIndex === 0 ? "#e5e7eb" : "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "0.25rem",
+                      cursor:
+                        walkthroughIndex === 0 ? "not-allowed" : "pointer",
+                      fontSize: "0.875rem",
+                      color: walkthroughIndex === 0 ? "#9ca3af" : "#374151",
+                    }}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onWalkthroughNext}
+                    disabled={walkthroughIndex === walkthroughErrors.length - 1}
+                    style={{
+                      padding: "0.5rem 1rem",
+                      background:
+                        walkthroughIndex === walkthroughErrors.length - 1
+                          ? "#e5e7eb"
+                          : "#f59e0b",
+                      border:
+                        walkthroughIndex === walkthroughErrors.length - 1
+                          ? "1px solid #d1d5db"
+                          : "none",
+                      borderRadius: "0.25rem",
+                      cursor:
+                        walkthroughIndex === walkthroughErrors.length - 1
+                          ? "not-allowed"
+                          : "pointer",
+                      fontSize: "0.875rem",
+                      color:
+                        walkthroughIndex === walkthroughErrors.length - 1
+                          ? "#9ca3af"
+                          : "white",
+                    }}
+                  >
+                    Next
+                  </button>
+                </>
+              )}
             <button
               type="button"
               onClick={onClose}
@@ -234,7 +416,7 @@ export default function ErrorDialog({
                 color: "white",
               }}
             >
-              Submit Correction
+              {isGameEntry ? "Save" : "Submit Correction"}
             </button>
           </div>
         </form>
@@ -257,7 +439,7 @@ export default function ErrorDialog({
           <br />
           4-player, 1 result: `1:2w3:4` (team 1-2 vs 3-4, team 1-2 wins)
           <br />
-          4-player, 2 results: `1:2wl3:4` (team 1-2 vs 3-4, W then L)
+          4-player, 2 results: `1:2wl3:4` (team 1-2 vs 3-4, team 1-2 wins)
         </div>
       </div>
     </div>

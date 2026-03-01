@@ -497,9 +497,15 @@ export const loadSampleData = () => {
 
 interface LadderFormProps {
   setShowSettings?: (show: boolean) => void;
+  triggerWalkthrough?: boolean;
+  setTriggerWalkthrough?: (show: boolean) => void;
 }
 
-export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
+export default function LadderForm({
+  setShowSettings,
+  triggerWalkthrough,
+  setTriggerWalkthrough,
+}: LadderFormProps = {}) {
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [isWide, setIsWide] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -514,11 +520,28 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
   const [currentError, setCurrentError] = useState<ValidationResult | null>(
     null,
   );
+  const [walkthroughErrors, setWalkthroughErrors] = useState<
+    ValidationResult[]
+  >([]);
+  const [walkthroughIndex, setWalkthroughIndex] = useState<number>(0);
   const [pendingPlayers, setPendingPlayers] = useState<PlayerData[] | null>(
     null,
   );
   const [pendingMatches, setPendingMatches] = useState<any[] | null>(null);
+  const [entryCell, setEntryCell] = useState<{
+    playerRank: number;
+    round: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (triggerWalkthrough && setTriggerWalkthrough) {
+      setTriggerWalkthrough(false);
+      if (walkthroughErrors.length > 0) {
+        setWalkthroughIndex(0);
+      }
+    }
+  }, [triggerWalkthrough, walkthroughErrors]);
 
   // VB6 Line: 894 - Initialize with sample data
   useEffect(() => {
@@ -693,6 +716,8 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
       setPendingPlayers(players);
       setPendingMatches(matches);
       setCurrentError(errors[0]);
+      setWalkthroughErrors(errors);
+      setWalkthroughIndex(0);
     } else {
       console.log("No errors. Clearing and repopulating game results.");
       const processedPlayers = repopulateGameResults(players, matches, 31);
@@ -750,6 +775,9 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     setCurrentError(null);
     setPendingPlayers(null);
     setPendingMatches(null);
+    setWalkthroughErrors([]);
+    setWalkthroughIndex(0);
+    setEntryCell(null);
   };
 
   const completeRatingCalculation = () => {
@@ -768,7 +796,44 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
     localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
     setPendingPlayers(null);
     setPendingMatches(null);
+    setWalkthroughErrors([]);
+    setWalkthroughIndex(0);
+    setCurrentError(null);
     console.log("Rating calculation complete");
+  };
+
+  const handleWalkthroughNext = () => {
+    if (walkthroughIndex < walkthroughErrors.length - 1) {
+      setWalkthroughIndex(walkthroughIndex + 1);
+    } else {
+      completeRatingCalculation();
+    }
+  };
+
+  const handleWalkthroughPrev = () => {
+    if (walkthroughIndex > 0) {
+      setWalkthroughIndex(walkthroughIndex - 1);
+    }
+  };
+
+  const handleGameEntrySubmit = (correctedString: string) => {
+    if (!entryCell) return;
+
+    setPlayers((prevPlayers) => {
+      const updatedPlayers = [...prevPlayers];
+      const playerIndex = entryCell.playerRank - 1;
+      if (playerIndex >= 0 && playerIndex < updatedPlayers.length) {
+        const player = updatedPlayers[playerIndex];
+        if (player) {
+          const newGameResults = [...player.gameResults];
+          newGameResults[entryCell.round] = correctedString + "_";
+          player.gameResults = newGameResults;
+        }
+      }
+      return updatedPlayers;
+    });
+    localStorage.setItem("ladder_players", JSON.stringify(players));
+    setEntryCell(null);
   };
 
   const Chess_Compare = (
@@ -1397,6 +1462,14 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                         key={`game-${row}-${gCol}`}
                         contentEditable={isEditable}
                         suppressContentEditableWarning={true}
+                        onClick={() => {
+                          if (!isAdmin) {
+                            setEntryCell({
+                              playerRank: player.rank,
+                              round: gCol,
+                            });
+                          }
+                        }}
                         onBlur={(e) => {
                           if (isEditable && e.target.textContent) {
                             const value = e.target.textContent;
@@ -1425,6 +1498,7 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
                           backgroundColor:
                             row % 2 >= 1 ? "#f8fafc" : "transparent",
                           fontSize: "0.75rem",
+                          cursor: isAdmin ? "default" : "pointer",
                         }}
                       >
                         {result ? result : ""}
@@ -1455,8 +1529,37 @@ export default function LadderForm({ setShowSettings }: LadderFormProps = {}) {
         <ErrorDialog
           error={currentError}
           players={players}
+          mode="error-correction"
           onClose={handleCorrectionCancel}
           onSubmit={handleCorrectionSubmit}
+        />
+      )}
+      {walkthroughIndex < walkthroughErrors.length &&
+        walkthroughErrors.length > 0 && (
+          <ErrorDialog
+            error={walkthroughErrors[walkthroughIndex]}
+            players={players}
+            mode="walkthrough"
+            walkthroughErrors={walkthroughErrors}
+            walkthroughIndex={walkthroughIndex}
+            onWalkthroughNext={handleWalkthroughNext}
+            onWalkthroughPrev={handleWalkthroughPrev}
+            onClose={handleCorrectionCancel}
+            onSubmit={handleCorrectionSubmit}
+          />
+        )}
+      {entryCell && (
+        <ErrorDialog
+          error={null}
+          players={players}
+          mode="game-entry"
+          entryCell={entryCell}
+          existingValue={
+            players[entryCell.playerRank - 1]?.gameResults[entryCell.round] ||
+            undefined
+          }
+          onClose={() => setEntryCell(null)}
+          onSubmit={handleGameEntrySubmit}
         />
       )}
       {currentError && (
