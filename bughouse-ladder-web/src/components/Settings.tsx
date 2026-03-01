@@ -4,14 +4,15 @@
  */
 
 import { useState, useEffect } from "react";
-import { X, Save, Settings as SettingsIcon } from "lucide-react";
+import { X, Save, Settings as SettingsIcon, Trash2 } from "lucide-react";
 import "../css/index.css";
 
 interface SettingsProps {
   onClose: () => void;
+  onReset: () => void;
 }
 
-export default function Settings({ onClose }: SettingsProps) {
+export default function Settings({ onClose, onReset }: SettingsProps) {
   const [showRatings, setShowRatings] = useState(true);
 
   useEffect(() => {
@@ -33,6 +34,19 @@ export default function Settings({ onClose }: SettingsProps) {
     localStorage.setItem("ladder_settings", JSON.stringify(settings));
     onClose();
     alert("Settings saved successfully!");
+  };
+
+  const handleClearAll = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to reset all data to sample data? This will clear all loaded players and game results.",
+      )
+    ) {
+      localStorage.clear();
+      onReset();
+      onClose();
+      alert("Data has been reset to sample data.");
+    }
   };
 
   return (
@@ -110,6 +124,46 @@ export default function Settings({ onClose }: SettingsProps) {
           <button onClick={handleSave} className="btn">
             <Save size={16} className="btn-icon" /> Save
           </button>
+        </div>
+
+        <div
+          style={{
+            marginTop: "2rem",
+            paddingTop: "1.5rem",
+            borderTop: "1px solid #e2e8f0",
+          }}
+        >
+          <button
+            onClick={handleClearAll}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              padding: "0.75rem",
+              backgroundColor: "#ef4444",
+              color: "white",
+              border: "none",
+              borderRadius: "0.25rem",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+            }}
+          >
+            <Trash2 size={16} />
+            Clear All Data
+          </button>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "#6b7280",
+              marginTop: "0.5rem",
+              textAlign: "center",
+            }}
+          >
+            Resets all players and game results to sample data
+          </p>
         </div>
       </div>
     </div>

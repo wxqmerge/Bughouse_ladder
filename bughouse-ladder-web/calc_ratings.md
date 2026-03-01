@@ -1,0 +1,304 @@
+# Rating Calculation Documentation
+
+## Overview
+
+This document describes the VB6-inspired rating calculation system for the Bughouse Chess Ladder application. The system validates game results from the player-result table (matrix) before calculating player ratings.
+
+## Workflow
+
+### 1. Data Loading
+
+- Game results are stored in the `gameResults` array for each player
+- Each entry represents a round (31 rounds total)
+- Format: `"Player1:Player2[Score]"` where Score is W/L/D/O
+
+### 2. Validation Phase
+
+The `processGameResults()` function performs validation:
+
+```typescript
+const { matches, hasErrors, errorCount, errors } = processGameResults(
+  players,
+  31,
+);
+```
+
+**Validation Steps:**
+
+1. Initialize hash table with `hashInitialize()`
+2. Iterate through all players' `gameResults` array (rounds 0-30)
+3. For each result string:
+   - Call `string2long()` to parse and validate
+   - Empty strings are skipped (not errors)
+   - Invalid entries return negative hash value → counted as error
+   - Valid entries added to hash table via `dataHash()`
+4. Track duplicate matches using hash value as key
+5. Return `ProcessResult` with matches, errors, and error details
+
+**Error Detection:**
+
+- Invalid format (negative hash from `string2long`)
+- Invalid player ranks (≤0 or >200)
+- Missing player data
+
+### 3. Error Handling
+
+If errors are detected (`hasErrors === true`):
+
+1. Dialog opens showing first error with:
+   - Round number
+   - Player rank involved
+   - Original invalid string
+   - Error code
+2. User can enter corrected result string
+3. Correction is validated via `string2long()`
+4. If valid, both players' `gameResults` updated with corrected string + "\_" suffix
+5. User clicks "Continue with corrections" to proceed
+
+### 4. Result Processing
+
+**If no errors:**
+
+1. Clear all `gameResults` arrays (set to null)
+2. Repopulate from validated matches via `repopulateGameResults()`
+3. Each match entry written to both players' round slot
+4. Entries marked with "\_" suffix to indicate validated
+
+**If errors were corrected:**
+
+1. Uses player data updated during correction phase
+2. Proceeds to rating calculation
+
+### 5. Rating Calculation
+
+The `calculateRatings()` function computes new ratings:
+
+```typescript
+const calculatedPlayers = calculateRatings(processedPlayers, matches);
+```
+
+**Algorithm:**
+
+- Elo K-factor: 20
+- For each match:
+  - Calculate expected score: `1 / (1 + 10^((|opponentRating| - |myRating|) / 400))`
+  - Determine actual score: W=1, L=0, D=0.5
+  - Update rating: `newRating = Math.round(oldRating + K * (actual - expected))`
+  - Minimum rating: 0
+
+## Data Structures
+
+### ProcessResult
+
+```typescript
+interface ProcessResult {
+  matches: MatchData[];
+  hasErrors: boolean;
+  errorCount: number;
+  errors: ValidationResult[];
+}
+```
+
+### MatchData
+
+```typescript
+interface MatchData {
+  player1: number; // Player 1 rank
+  player2: number; // Player 2 rank
+  score1: number; // Score for player 1 (0-4)
+  score2: number; // Score for player 2 (0-4)
+  round: number; // Round number (0-30)
+}
+```
+
+### ValidationResult
+
+```typescript
+interface ValidationResult {
+  hashValue: number;
+  player1: number;
+  player2: number;
+  score1: number;
+  score2: number;
+  round: number;
+  isValid: boolean;
+  error: number;
+  originalString: string;
+}
+```
+
+## Hash Table
+
+The hash table prevents duplicate match entries:
+
+- **Key**: Computed hash value from `string2long()` + round number
+- **Value**: Original result string
+- **Capacity**: 2048 entries
+- **Collision Resolution**: Linear probing
+
+```typescript
+const key = `${hashValue}_${round}`;
+dataHash(key, result, 0);
+```
+
+## Result String Format
+
+### Input Format
+
+```
+Player1:Player2[Score]
+```
+
+**Examples:**
+
+- `10:20W` - Player 10 vs Player 20, Player 10 won
+- `15:25L` - Player 15 vs Player 25, Player 15 lost
+- `8:12D` - Player 8 vs Player 12, Draw
+- `5:15O` - Player 5 vs Player 15, No result
+
+### Score Codes
+
+- `W` - Win (score = 3)
+- `L` - Loss (score = 1)
+- `D` - Draw (score = 2)
+- `O` - No result (score = 0)
+
+### Validation Markers
+
+After validation, entries are marked with underscore:
+
+- Valid: `"10:20W_"`
+- This indicates the entry passed validation
+
+## Functions
+
+### processGameResults(players, numRounds)
+
+Validates all game results and populates hash table.
+
+**Parameters:**
+
+- `players`: Array of PlayerData objects
+- `numRounds`: Number of rounds (default: 31)
+
+**Returns:** `ProcessResult` with matches and error details
+
+### calculateRatings(players, matches)
+
+Calculates Elo ratings based on match results.
+
+**Parameters:**
+
+- `players`: Array of PlayerData objects
+- `matches`: Array of MatchData objects
+
+**Returns:** Updated PlayerData array with `nRating` calculated
+
+### repopulateGameResults(players, matches, numRounds)
+
+Clears and repopulates game results from validated matches.
+
+**Parameters:**
+
+- `players`: Array of PlayerData objects
+- `matches`: Array of MatchData objects
+- `numRounds`: Number of rounds (default: 31)
+
+**Returns:** Updated PlayerData array with cleared and repopulated results
+
+## Integration
+
+### Usage in LadderForm.tsx
+
+```typescript
+const recalculateRatings = () => {
+  // Step 1: Validate all results
+  const { matches, hasErrors, errorCount, errors } = processGameResults(
+    players,
+    31,
+  );
+
+  if (hasErrors && errors.length > 0) {
+    // Step 2: Show error dialog for correction
+    setPendingPlayers(players);
+    setPendingMatches(matches);
+    setCurrentError(errors[0]);
+  } else {
+    // Step 3: No errors - process directly
+    const processedPlayers = repopulateGameResults(players, matches, 31);
+    const calculatedPlayers = calculateRatings(processedPlayers, matches);
+    setPlayers(calculatedPlayers);
+    localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
+  }
+};
+```
+
+### Error Correction Flow
+
+```typescript
+const handleCorrectionSubmit = (correctedString: string) => {
+  // Validate corrected string
+  const hashValue = string2long(
+    correctedString,
+    parsedPlayersList,
+    parsedScoreList,
+  );
+
+  if (hashValue < 0) {
+    alert(`Invalid format. Error code: ${Math.abs(hashValue)}`);
+    return;
+  }
+
+  // Update both players' gameResults
+  const updatedPlayers = pendingPlayers.map((p) => ({ ...p }));
+
+  // Update player 1
+  if (player1Rank > 0 && player1Rank <= updatedPlayers.length) {
+    const newGameResults = [...updatedPlayers[player1Rank - 1].gameResults];
+    newGameResults[currentError.round] = correctedString + "_";
+    updatedPlayers[player1Rank - 1].gameResults = newGameResults;
+  }
+
+  // Update player 2
+  if (player2Rank > 0 && player2Rank <= updatedPlayers.length) {
+    const newGameResults = [...updatedPlayers[player2Rank - 1].gameResults];
+    newGameResults[currentError.round] = correctedString + "_";
+    updatedPlayers[player2Rank - 1].gameResults = newGameResults;
+  }
+
+  setPendingPlayers(updatedPlayers);
+  setCurrentError(null);
+};
+
+const completeRatingCalculation = () => {
+  const processedPlayers = repopulateGameResults(
+    pendingPlayers,
+    pendingMatches,
+    31,
+  );
+  const calculatedPlayers = calculateRatings(processedPlayers, pendingMatches);
+  setPlayers(calculatedPlayers);
+  localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
+};
+```
+
+## Error Codes
+
+From `string2long()` return values:
+
+- `-1`: Invalid underscore placement
+- `-2`: Invalid character
+- `-3`: Invalid string length
+- `-4`: Same player vs themselves
+- `-7`: Invalid player 2 rank
+- `-9`: Player rank exceeds maximum (200)
+
+## Notes
+
+- Empty strings are silently skipped (not counted as errors)
+- Hash table prevents duplicate match entries
+- Only valid entries get "\_" suffix marker
+- Rating calculation uses absolute values of ratings
+- Minimum rating is 0 (no negative ratings)
+- Player ranks must be 1-200
+- Round numbers are 0-indexed (0-30 for 31 rounds)
