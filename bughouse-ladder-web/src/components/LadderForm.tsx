@@ -28,7 +28,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "1w2",
-        "1:2W3:4",
+        "1:4W2:4",
         "6wl7",
         null,
         null,
@@ -76,7 +76,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "1l2",
-        "1:2L3:4",
+        "1:4L2:4",
         "6wl7",
         null,
         null,
@@ -124,7 +124,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "2w3",
-        "1:2W3:4",
+        "1:4W2:4",
         "8dl9",
         null,
         null,
@@ -172,7 +172,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "2l3",
-        "1:2W3:4",
+        "1:4W2:4",
         "8dl9",
         null,
         null,
@@ -268,7 +268,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "2w3",
-        "1:2W3:4",
+        "1:4W2:4",
         "8dl9",
         null,
         null,
@@ -316,7 +316,7 @@ export const loadSampleData = () => {
       room: "",
       gameResults: [
         "2l3",
-        "1:2W3:4",
+        "1:4W2:4",
         "8dl9",
         null,
         null,

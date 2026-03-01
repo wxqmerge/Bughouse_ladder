@@ -163,7 +163,10 @@ export default function ErrorDialog({
                 marginBottom: "0.5rem",
               }}
             >
-              <strong>Error Code:</strong> {error.error}
+              <strong>Error:</strong>{" "}
+              {error.error === 10
+                ? "Conflicting results - players disagree on outcome"
+                : "Invalid result format"}
             </p>
           )}
         </div>
@@ -194,7 +197,7 @@ export default function ErrorDialog({
               marginBottom: "1rem",
               boxSizing: "border-box",
             }}
-            placeholder="e.g., 10:20W"
+            placeholder="e.g., 1:2W3:4 for 4-player or 2w3 for 2-player"
             autoFocus
           />
           <div
