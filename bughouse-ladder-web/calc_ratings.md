@@ -63,13 +63,15 @@ The conflict detection ensures data integrity by requiring both players to agree
 If errors are detected (`hasErrors === true`):
 
 1. Dialog opens showing first error with:
-   - Round number
-   - Player rank involved
+   - **First Player**: First player's first name
+   - **Second Player**: Second player's first name
+   - **Third Player** (4-player games): Third player's first name
+   - **Fourth Player** (4-player games): Fourth player's first name
    - Original invalid string
-   - Error code
+   - Error message: "Conflicting results - players disagree on outcome" or "Invalid result format"
 2. User can enter corrected result string
 3. Correction is validated via `string2long()`
-4. If valid, both players' `gameResults` updated with corrected string + "\_" suffix
+4. If valid, both players' `gameResults` updated with corrected string + "\_" suffix at the same resultIndex
 5. User clicks "Continue with corrections" to proceed
 
 ### 4. Result Processing
@@ -78,8 +80,9 @@ If errors are detected (`hasErrors === true`):
 
 1. Clear all `gameResults` arrays (set to null)
 2. Repopulate from validated matches via `repopulateGameResults()`
-3. Each match entry written to both players' round slot
-4. Entries marked with "\_" suffix to indicate validated
+3. Results are filled **sequentially from the left** (resultIndex 0, 1, 2, ...)
+4. Each match result is written to both players' gameResults at the same index
+5. Entries marked with "\_" suffix to indicate validated
 
 **If errors were corrected:**
 
@@ -120,11 +123,12 @@ interface ProcessResult {
 
 ```typescript
 interface MatchData {
-  player1: number; // Player 1 rank
-  player2: number; // Player 2 rank
-  score1: number; // Score for player 1 (0-4)
-  score2: number; // Score for player 2 (0-4)
-  round: number; // Round number (0-30)
+  player1: number; // Player 1 rank (1-200)
+  player2: number; // Player 2 rank (1-200)
+  player3: number; // Player 3 rank (1-200, -1 if not used)
+  player4: number; // Player 4 rank (1-200, -1 if not used)
+  score1: number; // Score for team 1 (0-4)
+  score2: number; // Score for team 2 (0-4)
 }
 ```
 
@@ -133,11 +137,13 @@ interface MatchData {
 ```typescript
 interface ValidationResult {
   hashValue: number;
-  player1: number;
-  player2: number;
-  score1: number;
-  score2: number;
-  round: number;
+  player1: number; // Player 1 rank
+  player2: number; // Player 2 rank
+  player3: number; // Player 3 rank (0 if not used)
+  player4: number; // Player 4 rank (0 if not used)
+  score1: number; // Score for team 1 (0-4)
+  score2: number; // Score for team 2 (0-4)
+  resultIndex: number; // Sequential result index (0-30)
   isValid: boolean;
   error: number;
   originalString: string;
@@ -148,13 +154,13 @@ interface ValidationResult {
 
 The hash table prevents duplicate match entries:
 
-- **Key**: Computed hash value from `string2long()` + round number
+- **Key**: Computed hash value from `string2long()` + result index
 - **Value**: Original result string
 - **Capacity**: 2048 entries
 - **Collision Resolution**: Linear probing
 
 ```typescript
-const key = `${hashValue}_${round}`;
+const key = `${hashValue}_${resultIndex}`;
 dataHash(key, result, 0);
 ```
 
@@ -269,34 +275,51 @@ const handleCorrectionSubmit = (correctedString: string) => {
   // Update both players' gameResults
   const updatedPlayers = pendingPlayers.map((p) => ({ ...p }));
 
-  // Update player 1
+  // Update player 1 at resultIndex
   if (player1Rank > 0 && player1Rank <= updatedPlayers.length) {
     const newGameResults = [...updatedPlayers[player1Rank - 1].gameResults];
-    newGameResults[currentError.round] = correctedString + "_";
+    newGameResults[currentError.resultIndex] = correctedString + "_";
     updatedPlayers[player1Rank - 1].gameResults = newGameResults;
   }
 
-  // Update player 2
+  // Update player 2 at resultIndex
   if (player2Rank > 0 && player2Rank <= updatedPlayers.length) {
     const newGameResults = [...updatedPlayers[player2Rank - 1].gameResults];
-    newGameResults[currentError.round] = correctedString + "_";
+    newGameResults[currentError.resultIndex] = correctedString + "_";
     updatedPlayers[player2Rank - 1].gameResults = newGameResults;
   }
 
   setPendingPlayers(updatedPlayers);
   setCurrentError(null);
 };
+```
+
+### Parser Player Array Indices
+
+The `string2long()` parser uses these array indices for player ranks:
+
+```typescript
+playersList[0] = Player 1 rank
+playersList[1] = Player 2 rank
+playersList[2] = (unused, reserved)
+playersList[3] = Player 3 rank (4-player games)
+playersList[4] = Player 4 rank (4-player games)
+```
+
+For 2-player games: `playersList[0]` and `playersList[1]` are set, `playersList[3]` and `playersList[4]` are 0.
+For 4-player games: All four positions are set (e.g., `"1:2W3:4"` sets players 1, 2, 3, 4).
 
 const completeRatingCalculation = () => {
-  const processedPlayers = repopulateGameResults(
-    pendingPlayers,
-    pendingMatches,
-    31,
-  );
-  const calculatedPlayers = calculateRatings(processedPlayers, pendingMatches);
-  setPlayers(calculatedPlayers);
-  localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
+const processedPlayers = repopulateGameResults(
+pendingPlayers,
+pendingMatches,
+31,
+);
+const calculatedPlayers = calculateRatings(processedPlayers, pendingMatches);
+setPlayers(calculatedPlayers);
+localStorage.setItem("ladder_players", JSON.stringify(calculatedPlayers));
 };
+
 ```
 
 ## Error Codes
@@ -324,4 +347,6 @@ const completeRatingCalculation = () => {
 - Rating calculation uses absolute values of ratings
 - Minimum rating is 0 (no negative ratings)
 - Player ranks must be 1-200
-- Round numbers are 0-indexed (0-30 for 31 rounds)
+- Results are filled **sequentially from the left** (resultIndex 0, 1, 2, ...)
+- Result index is independent of round number - results fill gameResults array sequentially
+```
