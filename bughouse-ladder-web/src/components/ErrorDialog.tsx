@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { ValidationResult, PlayerData } from "../utils/hashUtils";
-import { validateGameResult, updatePlayerGameData } from "../utils/hashUtils";
+import { updatePlayerGameData } from "../utils/hashUtils";
 
 interface ErrorDialogProps {
   error: ValidationResult | null;
@@ -56,6 +56,16 @@ export default function ErrorDialog({
     error?: number;
     message?: string;
   } | null>(null);
+  const [parsedGameData, setParsedGameData] = useState<{
+    player1Rank: number;
+    player2Rank: number;
+    player3Rank: number;
+    player4Rank: number;
+  } | null>(null);
+  const [displayPlayer1, setDisplayPlayer1] = useState<PlayerData | null>(null);
+  const [displayPlayer2, setDisplayPlayer2] = useState<PlayerData | null>(null);
+  const [displayPlayer3, setDisplayPlayer3] = useState<PlayerData | null>(null);
+  const [displayPlayer4, setDisplayPlayer4] = useState<PlayerData | null>(null);
 
   const displayOriginalString = error
     ? error.originalString?.toUpperCase() || ""
@@ -69,27 +79,63 @@ export default function ErrorDialog({
       setCorrectedResult("");
     }
   }, [existingValue, mode]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (mode !== "game-entry") {
       setParseStatus(null);
+      setParsedGameData(null);
+      setDisplayPlayer1(null);
+      setDisplayPlayer2(null);
+      setDisplayPlayer3(null);
+      setDisplayPlayer4(null);
       return;
     }
 
     const input = correctedResult.toUpperCase();
-    setParseStatus(validateGameResult(input));
-  }, [correctedResult, mode]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+    const validation = updatePlayerGameData(input, true);
+    setParseStatus({
+      isValid: validation.isValid,
+      error: validation.error,
+      message: validation.message,
+    });
 
-  const player1 =
-    error && error.player1 > 0 && error.player1 <= players.length
-      ? players[error.player1 - 1]
-      : null;
-  const player2 =
-    error && error.player2 > 0 && error.player2 <= players.length
-      ? players[error.player2 - 1]
-      : null;
+    if (validation.parsedPlayer1Rank || validation.parsedPlayer2Rank) {
+      setParsedGameData({
+        player1Rank: validation.parsedPlayer1Rank || 0,
+        player2Rank: validation.parsedPlayer2Rank || 0,
+        player3Rank: validation.parsedPlayer3Rank || 0,
+        player4Rank: validation.parsedPlayer4Rank || 0,
+      });
+
+      setDisplayPlayer1(
+        validation.parsedPlayer1Rank &&
+          validation.parsedPlayer1Rank <= players.length
+          ? players[validation.parsedPlayer1Rank - 1]
+          : null,
+      );
+      setDisplayPlayer2(
+        validation.parsedPlayer2Rank &&
+          validation.parsedPlayer2Rank <= players.length
+          ? players[validation.parsedPlayer2Rank - 1]
+          : null,
+      );
+      setDisplayPlayer3(
+        validation.parsedPlayer3Rank &&
+          validation.parsedPlayer3Rank <= players.length
+          ? players[validation.parsedPlayer3Rank - 1]
+          : null,
+      );
+      setDisplayPlayer4(
+        validation.parsedPlayer4Rank &&
+          validation.parsedPlayer4Rank <= players.length
+          ? players[validation.parsedPlayer4Rank - 1]
+          : null,
+      );
+    }
+  }, [correctedResult, mode, players]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,13 +153,15 @@ export default function ErrorDialog({
           error: validation.error,
           message: validation.message,
         });
-      } else if (validation.isValid && entryCell && onUpdatePlayerData) {
+      } else if (validation.isValid && entryCell) {
         setParseStatus({ isValid: true });
-        onUpdatePlayerData(
-          entryCell.playerRank,
-          entryCell.round,
-          validation.resultString || newValue,
-        );
+        if (onUpdatePlayerData) {
+          onUpdatePlayerData(
+            entryCell.playerRank,
+            entryCell.round,
+            validation.resultString || newValue,
+          );
+        }
       }
     }
   };
@@ -203,10 +251,62 @@ export default function ErrorDialog({
               }}
             >
               <strong>Editing:</strong> Round {displayCell.round + 1} for{" "}
-              {entryCell && player1
-                ? player1.firstName + " " + player1.lastName
+              {entryCell && displayPlayer1
+                ? displayPlayer1.firstName + " " + displayPlayer1.lastName
                 : "Unknown"}
             </p>
+            {displayPlayer2 && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>vs:</strong>{" "}
+                {displayPlayer2.firstName + " " + displayPlayer2.lastName}
+              </p>
+            )}
+            {displayPlayer3 && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>Team:</strong>{" "}
+                {displayPlayer3.firstName + " " + displayPlayer3.lastName}
+              </p>
+            )}
+            {displayPlayer4 && (
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <strong>vs:</strong>{" "}
+                {displayPlayer4.firstName + " " + displayPlayer4.lastName}
+              </p>
+            )}
+            {parsedGameData && (
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#0369a1",
+                  backgroundColor: "#f0f9ff",
+                  padding: "0.5rem",
+                  borderRadius: "0.25rem",
+                  marginTop: "0.5rem",
+                }}
+              >
+                Parsed: P1={parsedGameData.player1Rank} P2=
+                {parsedGameData.player2Rank} P3={parsedGameData.player3Rank} P4=
+                {parsedGameData.player4Rank}
+              </p>
+            )}
           </div>
         )}
 
@@ -220,7 +320,7 @@ export default function ErrorDialog({
               }}
             >
               <strong>First Player:</strong>{" "}
-              {player1 ? player1.firstName : "Unknown"}
+              {displayPlayer1 ? displayPlayer1.firstName : "Unknown"}
             </p>
             <p
               style={{
@@ -230,7 +330,7 @@ export default function ErrorDialog({
               }}
             >
               <strong>Second Player:</strong>{" "}
-              {player2 ? player2.firstName : "Unknown"}
+              {displayPlayer2 ? displayPlayer2.firstName : "Unknown"}
             </p>
             {displayError.player3 > 0 && (
               <p
@@ -241,7 +341,9 @@ export default function ErrorDialog({
                 }}
               >
                 <strong>Third Player:</strong>{" "}
-                {players[displayError.player3 - 1]?.firstName || "Unknown"}
+                {displayError.player3 <= players.length
+                  ? players[displayError.player3 - 1]?.firstName || "Unknown"
+                  : "Unknown"}
               </p>
             )}
             {displayError.player4 > 0 && (
@@ -253,7 +355,9 @@ export default function ErrorDialog({
                 }}
               >
                 <strong>Fourth Player:</strong>{" "}
-                {players[displayError.player4 - 1]?.firstName || "Unknown"}
+                {displayError.player4 <= players.length
+                  ? players[displayError.player4 - 1]?.firstName || "Unknown"
+                  : "Unknown"}
               </p>
             )}
             <p

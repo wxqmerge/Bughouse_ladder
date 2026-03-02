@@ -759,6 +759,8 @@ export interface UpdatePlayerGameDataResult {
   resultString?: string;
   parsedPlayer1Rank?: number;
   parsedPlayer2Rank?: number;
+  parsedPlayer3Rank?: number;
+  parsedPlayer4Rank?: number;
 }
 
 export function updatePlayerGameData(
@@ -792,6 +794,8 @@ export function updatePlayerGameData(
   const resultString = addUnderscore ? input + "_" : input;
   const parsedPlayer1Rank = parsedPlayersList[0];
   const parsedPlayer2Rank = parsedPlayersList[3];
+  const parsedPlayer3Rank = parsedPlayersList[1];
+  const parsedPlayer4Rank = parsedPlayersList[4];
 
   return {
     isValid: true,
@@ -801,5 +805,7 @@ export function updatePlayerGameData(
     resultString,
     parsedPlayer1Rank,
     parsedPlayer2Rank,
+    parsedPlayer3Rank,
+    parsedPlayer4Rank,
   };
 }
