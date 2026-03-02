@@ -184,14 +184,11 @@ export function parseEntry(
         numOrChar = 0;
       } else {
         if (myasc === 58) {
-          // Colon separates teams - increment entry
-          entry++;
+          // Colon separates pairs within same team
           entryString = "";
           continue;
         } else if (mychar === "W" || mychar === "L" || mychar === "D") {
           // Score character - store in current result slot
-          if (entry < 1) entry = 1;
-          if (entry > 2) entry = 2;
         } else {
           errorNum = 2;
         }
@@ -212,12 +209,7 @@ export function parseEntry(
         results[resultIndex] = entryString;
         // Move to next result slot for next score
         resultIndex = resultIndex + 1;
-      }
-
-      if (numOrChar !== 1) {
-        entry++;
-        entryString = "";
-      } else if (numOrChar === 1) {
+        entryString = ""; // Reset entryString after storing result
       }
     }
   }
