@@ -186,7 +186,14 @@ export function parseEntry(
           entry++;
           entryString = "";
           continue;
-        } else if (mychar === "W" || mychar === "L" || mychar === "D") {
+        } else if (
+          mychar === "W" ||
+          mychar === "L" ||
+          mychar === "D" ||
+          mychar === "w" ||
+          mychar === "l" ||
+          mychar === "d"
+        ) {
           // Score character - store in current result slot
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;
