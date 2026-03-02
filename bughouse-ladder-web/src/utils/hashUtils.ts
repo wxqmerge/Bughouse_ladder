@@ -155,7 +155,9 @@ export function parseEntry(
   playersList[4] = 0;
   playerOrRow = true;
 
-  const strlen = myText.length;
+  // Normalize input to uppercase
+  const normalizedText = myText.toUpperCase();
+  const strlen = normalizedText.length;
   if (strlen < 2) return -3;
 
   const results: string[] = [];
@@ -166,7 +168,7 @@ export function parseEntry(
   let resultIndex = 0; // Track which result slot (0 or 1)
 
   for (let i = 1; i <= strlen; i++) {
-    const mychar = myText.substring(i - 1, i);
+    const mychar = normalizedText.substring(i - 1, i);
     const myasc = mychar.charCodeAt(0);
 
     if (myasc > 33) {
@@ -186,14 +188,7 @@ export function parseEntry(
           entry++;
           entryString = "";
           continue;
-        } else if (
-          mychar === "W" ||
-          mychar === "L" ||
-          mychar === "D" ||
-          mychar === "w" ||
-          mychar === "l" ||
-          mychar === "d"
-        ) {
+        } else if (mychar === "W" || mychar === "L" || mychar === "D") {
           // Score character - store in current result slot
           if (entry < 1) entry = 1;
           if (entry > 2) entry = 2;

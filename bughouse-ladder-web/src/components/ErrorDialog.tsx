@@ -54,7 +54,7 @@ export default function ErrorDialog({
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (existingValue) {
-      setCorrectedResult(existingValue);
+      setCorrectedResult(existingValue.toUpperCase());
     } else {
       setCorrectedResult("");
     }
@@ -67,7 +67,7 @@ export default function ErrorDialog({
       return;
     }
 
-    const input = correctedResult;
+    const input = correctedResult.toUpperCase();
     if (!input.trim()) {
       setParseStatus(null);
       return;
@@ -104,7 +104,7 @@ export default function ErrorDialog({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCorrectedResult(e.target.value);
+    setCorrectedResult(e.target.value.toUpperCase());
   };
 
   const isWalkthrough = mode === "walkthrough";
