@@ -51,6 +51,10 @@ export default function ErrorDialog({
     message?: string;
   } | null>(null);
 
+  const displayOriginalString = error
+    ? error.originalString?.toUpperCase() || ""
+    : "";
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (existingValue) {
@@ -261,7 +265,7 @@ export default function ErrorDialog({
                   fontSize: "0.75rem",
                 }}
               >
-                {displayError.originalString || "(empty)"}
+                {displayOriginalString || "(empty)"}
               </code>
             </p>
             {displayError.error !== undefined && (
@@ -433,13 +437,13 @@ export default function ErrorDialog({
         >
           <strong>Format:</strong>
           <br />
-          2-player, 1 result: `2w3` (player 2 vs 3, player 2 wins)
+          2-player, 1 result: `2W3` (player 2 vs 3, player 2 wins)
           <br />
-          2-player, 2 results: `3wl4` (player 3 vs 4, W then L)
+          2-player, 2 results: `3WL4` (player 3 vs 4, W then L)
           <br />
-          4-player, 1 result: `1:2w3:4` (team 1-2 vs 3-4, team 1-2 wins)
+          4-player, 1 result: `1:2W3:4` (team 1-2 vs 3-4, team 1-2 wins)
           <br />
-          4-player, 2 results: `1:2wl3:4` (team 1-2 vs 3-4, team 1-2 wins)
+          4-player, 2 results: `1:2WL3:4` (team 1-2 vs 3-4, team 1-2 wins)
         </div>
       </div>
     </div>
