@@ -83,25 +83,19 @@ export default function ErrorDialog({
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (mode !== "game-entry") {
-      setParseStatus(null);
-      setParsedGameData(null);
-      setDisplayPlayer1(null);
-      setDisplayPlayer2(null);
-      setDisplayPlayer3(null);
-      setDisplayPlayer4(null);
-      return;
+    const input = correctedResult.toUpperCase();
+
+    if (mode === "game-entry") {
+      const validation = updatePlayerGameData(input, true);
+      setParseStatus({
+        isValid: validation.isValid,
+        error: validation.error,
+        message: validation.message,
+      });
     }
 
-    const input = correctedResult.toUpperCase();
-    const validation = updatePlayerGameData(input, true);
-    setParseStatus({
-      isValid: validation.isValid,
-      error: validation.error,
-      message: validation.message,
-    });
-
-    if (validation.parsedPlayer1Rank || validation.parsedPlayer2Rank) {
+    if (input.trim()) {
+      const validation = updatePlayerGameData(input, true);
       setParsedGameData({
         player1Rank: validation.parsedPlayer1Rank || 0,
         player2Rank: validation.parsedPlayer2Rank || 0,
@@ -138,6 +132,12 @@ export default function ErrorDialog({
       setDisplayPlayer2(p2);
       setDisplayPlayer3(p3);
       setDisplayPlayer4(p4);
+    } else {
+      setParsedGameData(null);
+      setDisplayPlayer1(null);
+      setDisplayPlayer2(null);
+      setDisplayPlayer3(null);
+      setDisplayPlayer4(null);
     }
   }, [correctedResult, mode, players]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -246,8 +246,8 @@ export default function ErrorDialog({
           </button>
         </div>
 
-        {isGameEntry && (
-          <div style={{ marginBottom: "1rem" }}>
+        <div style={{ marginBottom: "1rem" }}>
+          {isGameEntry && (
             <p
               style={{
                 fontSize: "0.875rem",
@@ -260,43 +260,57 @@ export default function ErrorDialog({
                 ? displayPlayer1.firstName + " " + displayPlayer1.lastName
                 : "Unknown"}
             </p>
-            {displayPlayer2 && (
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <strong>vs:</strong>{" "}
-                {displayPlayer2.firstName + " " + displayPlayer2.lastName}
-              </p>
-            )}
-            {displayPlayer3 && (
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <strong>Team:</strong>{" "}
-                {displayPlayer3.firstName + " " + displayPlayer3.lastName}
-              </p>
-            )}
-            {displayPlayer4 && (
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <strong>vs:</strong>{" "}
-                {displayPlayer4.firstName + " " + displayPlayer4.lastName}
-              </p>
-            )}
-            {parsedGameData && (
+          )}
+          {parsedGameData && (
+            <>
+              {displayPlayer1 && (
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#6b7280",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  <strong>First Player:</strong>{" "}
+                  {displayPlayer1.firstName + " " + displayPlayer1.lastName}
+                </p>
+              )}
+              {displayPlayer2 && (
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#6b7280",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  <strong>Second Player:</strong>{" "}
+                  {displayPlayer2.firstName + " " + displayPlayer2.lastName}
+                </p>
+              )}
+              {displayPlayer3 && (
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#6b7280",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  <strong>Third Player:</strong>{" "}
+                  {displayPlayer3.firstName + " " + displayPlayer3.lastName}
+                </p>
+              )}
+              {displayPlayer4 && (
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#6b7280",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  <strong>Fourth Player:</strong>{" "}
+                  {displayPlayer4.firstName + " " + displayPlayer4.lastName}
+                </p>
+              )}
               <p
                 style={{
                   fontSize: "0.75rem",
@@ -311,60 +325,12 @@ export default function ErrorDialog({
                 {parsedGameData.player2Rank} P3={parsedGameData.player3Rank} P4=
                 {parsedGameData.player4Rank}
               </p>
-            )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
 
         {!isGameEntry && displayError && (
           <div style={{ marginBottom: "1rem" }}>
-            <p
-              style={{
-                fontSize: "0.875rem",
-                color: "#6b7280",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <strong>First Player:</strong>{" "}
-              {displayPlayer1 ? displayPlayer1.firstName : "Unknown"}
-            </p>
-            <p
-              style={{
-                fontSize: "0.875rem",
-                color: "#6b7280",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <strong>Second Player:</strong>{" "}
-              {displayPlayer2 ? displayPlayer2.firstName : "Unknown"}
-            </p>
-            {displayError.player3 > 0 && (
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <strong>Third Player:</strong>{" "}
-                {displayError.player3 <= players.length
-                  ? players[displayError.player3 - 1]?.firstName || "Unknown"
-                  : "Unknown"}
-              </p>
-            )}
-            {displayError.player4 > 0 && (
-              <p
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#6b7280",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <strong>Fourth Player:</strong>{" "}
-                {displayError.player4 <= players.length
-                  ? players[displayError.player4 - 1]?.firstName || "Unknown"
-                  : "Unknown"}
-              </p>
-            )}
             <p
               style={{
                 fontSize: "0.875rem",
