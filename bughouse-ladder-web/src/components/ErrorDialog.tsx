@@ -109,30 +109,35 @@ export default function ErrorDialog({
         player4Rank: validation.parsedPlayer4Rank || 0,
       });
 
-      setDisplayPlayer1(
+      const p1 =
         validation.parsedPlayer1Rank &&
-          validation.parsedPlayer1Rank <= players.length
+        validation.parsedPlayer1Rank > 0 &&
+        validation.parsedPlayer1Rank <= players.length
           ? players[validation.parsedPlayer1Rank - 1]
-          : null,
-      );
-      setDisplayPlayer2(
+          : null;
+      const p2 =
         validation.parsedPlayer2Rank &&
-          validation.parsedPlayer2Rank <= players.length
+        validation.parsedPlayer2Rank > 0 &&
+        validation.parsedPlayer2Rank <= players.length
           ? players[validation.parsedPlayer2Rank - 1]
-          : null,
-      );
-      setDisplayPlayer3(
+          : null;
+      const p3 =
         validation.parsedPlayer3Rank &&
-          validation.parsedPlayer3Rank <= players.length
+        validation.parsedPlayer3Rank > 0 &&
+        validation.parsedPlayer3Rank <= players.length
           ? players[validation.parsedPlayer3Rank - 1]
-          : null,
-      );
-      setDisplayPlayer4(
+          : null;
+      const p4 =
         validation.parsedPlayer4Rank &&
-          validation.parsedPlayer4Rank <= players.length
+        validation.parsedPlayer4Rank > 0 &&
+        validation.parsedPlayer4Rank <= players.length
           ? players[validation.parsedPlayer4Rank - 1]
-          : null,
-      );
+          : null;
+
+      setDisplayPlayer1(p1);
+      setDisplayPlayer2(p2);
+      setDisplayPlayer3(p3);
+      setDisplayPlayer4(p4);
     }
   }, [correctedResult, mode, players]);
   /* eslint-enable react-hooks/set-state-in-effect */
