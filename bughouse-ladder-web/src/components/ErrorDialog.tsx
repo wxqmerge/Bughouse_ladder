@@ -94,8 +94,17 @@ export default function ErrorDialog({
       });
     }
 
-    if (input.trim()) {
-      const validation = updatePlayerGameData(input, true);
+    let validation;
+    let displayInput = input;
+
+    if (!input.trim() && error && error.originalString) {
+      validation = updatePlayerGameData(error.originalString, true);
+      displayInput = error.originalString.toUpperCase();
+    } else {
+      validation = updatePlayerGameData(input, true);
+    }
+
+    if (displayInput.trim()) {
       setParsedGameData({
         player1Rank: validation.parsedPlayer1Rank || 0,
         player2Rank: validation.parsedPlayer2Rank || 0,
@@ -139,7 +148,7 @@ export default function ErrorDialog({
       setDisplayPlayer3(null);
       setDisplayPlayer4(null);
     }
-  }, [correctedResult, mode, players]);
+  }, [correctedResult, mode, players, error]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -96,10 +96,3 @@ Game results are stored in a 2D array representing rounds and player results.
 - Firefox
 - Safari
 
-## Future Enhancements
-
-- Additional sorting options
-- Player filtering capabilities
-- Export functionality for game results
-- Multi-file import support
-- User authentication and data persistence
