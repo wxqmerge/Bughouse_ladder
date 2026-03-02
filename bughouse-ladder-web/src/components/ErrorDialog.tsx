@@ -409,7 +409,7 @@ export default function ErrorDialog({
                   : "#ef4444"
                 : "#d1d5db",
             }}
-            placeholder="e.g., 1:2W3:4 for 4-player or 2w3 for 2-player"
+            placeholder="e.g., 5:6W7:8 for 4-player (pairs separated by colon)"
             autoFocus
           />
           {parseStatus && (
@@ -528,13 +528,21 @@ export default function ErrorDialog({
         >
           <strong>Format:</strong>
           <br />
-          2-player, 1 result: `2W3` (player 2 vs 3, player 2 wins)
+          2-player: `2W3` (player 2 vs 3, player 2 wins)
           <br />
           2-player, 2 results: `3WL4` (player 3 vs 4, W then L)
           <br />
-          4-player, 1 result: `1:2W3:4` (team 1-2 vs 3-4, team 1-2 wins)
+          4-player: `A:BWC:D` where A:B = first pair, C:D = second pair
           <br />
-          4-player, 2 results: `1:2WL3:4` (team 1-2 vs 3-4, team 1-2 wins)
+          Example: `5:6W7:8` means:
+          <br />
+          - Player 1 (rank 5) vs player 3 (rank 7)
+          <br />
+          - Player 2 (rank 6) vs player 4 (rank 8)
+          <br />
+          - Player 1 and 2 win
+          <br />
+          Colon separates pairs, not teams
         </div>
       </div>
     </div>
