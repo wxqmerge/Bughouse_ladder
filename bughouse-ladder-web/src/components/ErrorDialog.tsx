@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { ValidationResult, PlayerData } from "../utils/hashUtils";
-import { validateGameResult } from "../utils/hashUtils";
+import { validateGameResult, updatePlayerGameData } from "../utils/hashUtils";
 
 interface ErrorDialogProps {
   error: ValidationResult | null;
@@ -15,6 +15,11 @@ interface ErrorDialogProps {
   onWalkthroughPrev?: () => void;
   entryCell?: { playerRank: number; round: number };
   existingValue?: string;
+  onUpdatePlayerData?: (
+    playerRank: number,
+    roundIndex: number,
+    resultString: string,
+  ) => void;
 }
 
 const ERROR_MESSAGES: Record<number, string> = {
@@ -43,6 +48,7 @@ export default function ErrorDialog({
   onWalkthroughPrev,
   entryCell,
   existingValue,
+  onUpdatePlayerData,
 }: ErrorDialogProps) {
   const [correctedResult, setCorrectedResult] = useState<string>("");
   const [parseStatus, setParseStatus] = useState<{
@@ -94,15 +100,20 @@ export default function ErrorDialog({
     const newValue = e.target.value.toUpperCase();
     setCorrectedResult(newValue);
     if (mode === "game-entry" && newValue.trim()) {
-      const validation = validateGameResult(newValue);
+      const validation = updatePlayerGameData(newValue, true);
       if (!validation.isValid && validation.error) {
         setParseStatus({
           isValid: false,
           error: validation.error,
           message: validation.message,
         });
-      } else if (validation.isValid) {
+      } else if (validation.isValid && entryCell && onUpdatePlayerData) {
         setParseStatus({ isValid: true });
+        onUpdatePlayerData(
+          entryCell.playerRank,
+          entryCell.round,
+          validation.resultString || newValue,
+        );
       }
     }
   };

@@ -748,3 +748,58 @@ export function validateGameResult(input: string): ValidationResultResult {
 
   return { isValid: true };
 }
+
+export interface UpdatePlayerGameDataResult {
+  isValid: boolean;
+  error?: number;
+  message?: string;
+  parsedPlayersList?: number[];
+  parsedScoreList?: number[];
+  originalString: string;
+  resultString?: string;
+  parsedPlayer1Rank?: number;
+  parsedPlayer2Rank?: number;
+}
+
+export function updatePlayerGameData(
+  input: string,
+  addUnderscore: boolean = true,
+): UpdatePlayerGameDataResult {
+  if (!input.trim()) {
+    return {
+      isValid: false,
+      error: 3,
+      message: "Incomplete entry",
+      originalString: input,
+    };
+  }
+
+  const parsedPlayersList = [0, 0, 0, 0, 0];
+  const parsedScoreList = [0, 0];
+  const hashValue = string2long(input, parsedPlayersList, parsedScoreList);
+
+  if (hashValue < 0) {
+    return {
+      isValid: false,
+      error: Math.abs(hashValue),
+      message: getValidationErrorMessage(Math.abs(hashValue)),
+      parsedPlayersList: parsedPlayersList,
+      parsedScoreList: parsedScoreList,
+      originalString: input,
+    };
+  }
+
+  const resultString = addUnderscore ? input + "_" : input;
+  const parsedPlayer1Rank = parsedPlayersList[0];
+  const parsedPlayer2Rank = parsedPlayersList[3];
+
+  return {
+    isValid: true,
+    parsedPlayersList: parsedPlayersList,
+    parsedScoreList: parsedScoreList,
+    originalString: input,
+    resultString,
+    parsedPlayer1Rank,
+    parsedPlayer2Rank,
+  };
+}

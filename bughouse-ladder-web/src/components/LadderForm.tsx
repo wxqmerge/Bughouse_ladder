@@ -5,6 +5,7 @@ import {
   calculateRatings,
   repopulateGameResults,
   string2long,
+  updatePlayerGameData,
 } from "../utils/hashUtils";
 import ErrorDialog from "./ErrorDialog";
 import { Settings as SettingsIcon, Play as PlayIcon } from "lucide-react";
@@ -532,6 +533,13 @@ export default function LadderForm({
     playerRank: number;
     round: number;
   } | null>(null);
+  const [tempGameResult, setTempGameResult] = useState<{
+    playerRank: number;
+    round: number;
+    resultString: string;
+    parsedPlayer1Rank: number;
+    parsedPlayer2Rank: number;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -834,6 +842,26 @@ export default function LadderForm({
     });
     localStorage.setItem("ladder_players", JSON.stringify(players));
     setEntryCell(null);
+  };
+
+  const handleUpdatePlayerData = (
+    playerRank: number,
+    roundIndex: number,
+    resultString: string,
+  ) => {
+    const parsedResult = updatePlayerGameData(
+      resultString.replace(/_$/, ""),
+      true,
+    );
+    if (parsedResult.isValid) {
+      setTempGameResult({
+        playerRank,
+        round: roundIndex,
+        resultString: parsedResult.resultString || resultString,
+        parsedPlayer1Rank: parsedResult.parsedPlayer1Rank || 0,
+        parsedPlayer2Rank: parsedResult.parsedPlayer2Rank || 0,
+      });
+    }
   };
 
   const Chess_Compare = (
@@ -1499,9 +1527,20 @@ export default function LadderForm({
                             row % 2 >= 1 ? "#f8fafc" : "transparent",
                           fontSize: "0.75rem",
                           cursor: isAdmin ? "default" : "pointer",
+                          borderColor:
+                            tempGameResult &&
+                            tempGameResult.playerRank === player.rank &&
+                            tempGameResult.round === gCol
+                              ? "#3b82f6"
+                              : "#e2e8f0",
                         }}
                       >
                         {result ? result : ""}
+                        {tempGameResult &&
+                        tempGameResult.playerRank === player.rank &&
+                        tempGameResult.round === gCol
+                          ? tempGameResult.resultString
+                          : ""}
                       </td>
                     );
                   })}
@@ -1558,8 +1597,12 @@ export default function LadderForm({
             players[entryCell.playerRank - 1]?.gameResults[entryCell.round] ||
             undefined
           }
-          onClose={() => setEntryCell(null)}
+          onClose={() => {
+            setEntryCell(null);
+            setTempGameResult(null);
+          }}
           onSubmit={handleGameEntrySubmit}
+          onUpdatePlayerData={handleUpdatePlayerData}
         />
       )}
       {currentError && (
