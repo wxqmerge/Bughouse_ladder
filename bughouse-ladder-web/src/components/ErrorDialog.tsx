@@ -108,6 +108,7 @@ export default function ErrorDialog({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.error("Text changed:", e.target.value);
     setCorrectedResult(e.target.value.toUpperCase());
   };
 
