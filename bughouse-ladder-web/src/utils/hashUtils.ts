@@ -722,3 +722,29 @@ export const ERROR_MESSAGES: Record<number, string> = {
 export function getValidationErrorMessage(errorCode: number): string {
   return ERROR_MESSAGES[errorCode] || "Unknown error";
 }
+
+export interface ValidationResultResult {
+  isValid: boolean;
+  error?: number;
+  message?: string;
+}
+
+export function validateGameResult(input: string): ValidationResultResult {
+  if (!input.trim()) {
+    return { isValid: false, error: 3, message: "Incomplete entry" };
+  }
+
+  const parsedPlayersList = [0, 0, 0, 0, 0];
+  const parsedScoreList = [0, 0];
+  const hashValue = string2long(input, parsedPlayersList, parsedScoreList);
+
+  if (hashValue < 0) {
+    return {
+      isValid: false,
+      error: Math.abs(hashValue),
+      message: getValidationErrorMessage(Math.abs(hashValue)),
+    };
+  }
+
+  return { isValid: true };
+}

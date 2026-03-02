@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import type { ValidationResult, PlayerData } from "../utils/hashUtils";
-import { string2long } from "../utils/hashUtils";
+import { validateGameResult } from "../utils/hashUtils";
 
 interface ErrorDialogProps {
   error: ValidationResult | null;
@@ -72,24 +72,7 @@ export default function ErrorDialog({
     }
 
     const input = correctedResult.toUpperCase();
-    if (!input.trim()) {
-      setParseStatus(null);
-      return;
-    }
-
-    const parsedPlayersList = [0, 0, 0, 0, 0];
-    const parsedScoreList = [0, 0];
-    const hashValue = string2long(input, parsedPlayersList, parsedScoreList);
-
-    if (hashValue < 0) {
-      setParseStatus({
-        isValid: false,
-        error: Math.abs(hashValue),
-        message: getValidationErrorMessage(Math.abs(hashValue)),
-      });
-    } else {
-      setParseStatus({ isValid: true });
-    }
+    setParseStatus(validateGameResult(input));
   }, [correctedResult, mode]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -108,8 +91,20 @@ export default function ErrorDialog({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.error("Text changed:", e.target.value);
-    setCorrectedResult(e.target.value.toUpperCase());
+    const newValue = e.target.value.toUpperCase();
+    setCorrectedResult(newValue);
+    if (mode === "game-entry" && newValue.trim()) {
+      const validation = validateGameResult(newValue);
+      if (!validation.isValid && validation.error) {
+        setParseStatus({
+          isValid: false,
+          error: validation.error,
+          message: validation.message,
+        });
+      } else if (validation.isValid) {
+        setParseStatus({ isValid: true });
+      }
+    }
   };
 
   const isWalkthrough = mode === "walkthrough";
